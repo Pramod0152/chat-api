@@ -1,0 +1,62 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
+import { Message } from './entities/message.entity';
+import { CreateMessageDto } from 'src/dto/message/create-message.dto';
+import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
+import { MessageType } from 'src/lib/enums';
+
+@Injectable()
+export class MessageDataService {
+  constructor(@InjectModel(Message) private readonly model: typeof Message) {}
+
+  async createMessage(user_id: number, item: CreateMessageDto) {
+    return this.model.create({
+      conversation_id: item.conversation_id,
+      user_id,
+      content: item.content,
+      type: item.type ?? MessageType.Text,
+      is_updated: false,
+    });
+  }
+
+  async findAll(conversation_id: number) {
+    return this.model.findAll({
+      where: {
+        conversation_id,
+      },
+      include: ['user'],
+    });
+  }
+
+  async findById(id: number) {
+    return this.model.findOne({
+      where: { id },
+      include: ['user'],
+    });
+  }
+
+  async updateMessage(id: number, item: UpdateMessageDto) {
+    const message = await this.findById(id);
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    const filteredItem = Object.fromEntries(Object.entries(item).filter(([_, value]) => value !== undefined));
+    if (filteredItem.content !== undefined) {
+      filteredItem.is_updated = true;
+    }
+
+    return message.update(filteredItem);
+  }
+
+  async deleteById(id: number) {
+    return this.model.update(
+      {
+        deleted_at: new Date(),
+      },
+      {
+        where: { id },
+      },
+    );
+  }
+}

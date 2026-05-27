@@ -5,6 +5,8 @@ import { ReadUserDto } from './dto/user/read-user.dto';
 import { User } from './dal/entities/user.entity';
 import { ReadConversationDto } from './dto/conversation/read-conversation.dto';
 import { Conversation } from './dal/entities/conversation.entity';
+import { ReadMessageDto } from './dto/message/read-message.dto';
+import { Message } from './dal/entities/message.entity';
 
 @Injectable()
 export class Profile extends AutomapperProfile {
@@ -16,6 +18,7 @@ export class Profile extends AutomapperProfile {
     return (mapper: Mapper) => {
       createMap(mapper, User, ReadUserDto);
       createMap(mapper, Conversation, ReadConversationDto);
+      createMap(mapper, Message, ReadMessageDto);
     };
   }
 }

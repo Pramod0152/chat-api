@@ -55,3 +55,7 @@ export enum ConversationType {
   Group = 'Group',
   Private = 'Private',
 }
+
+export enum MessageType {
+  Text = 'Text',
+}

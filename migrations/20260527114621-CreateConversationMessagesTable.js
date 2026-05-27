@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('conversation_messages', {
+    await queryInterface.createTable('messages', {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -34,6 +34,12 @@ module.exports = {
         allowNull: false,
       },
 
+      is_updated: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+
       type: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -60,6 +66,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('conversation_messages');
+    await queryInterface.dropTable('messages');
   },
 };
