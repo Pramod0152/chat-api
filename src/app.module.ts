@@ -12,10 +12,12 @@ import { ResponseModule } from './common/response/response.module';
 import { PassportModule } from '@nestjs/passport';
 import { AutomapperModule } from '@automapper/nestjs';
 import { classes } from '@automapper/classes';
+import { ServiceModule } from './bll/service.module';
 
 @Module({
   imports: [
     DalModule,
+    ServiceModule,
     LoggerModule,
     ResponseModule,
     GatewayModule,
