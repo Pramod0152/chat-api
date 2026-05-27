@@ -20,6 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@automapper/classes": "^8.8.1",
+    "@automapper/core": "^8.8.1",
+    "@automapper/nestjs": "^8.8.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -37,9 +40,11 @@
     "cookie-parser": "^1.4.7",
     "express-useragent": "^2.2.0",
     "mysql2": "^3.22.3",
+    "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sequelize": "^6.37.8",
     "sequelize-typescript": "^2.1.6",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"

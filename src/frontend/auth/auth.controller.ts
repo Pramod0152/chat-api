@@ -2,6 +2,7 @@ import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConsumes,
   ApiExtraModels,
   ApiNotFoundResponse,
   ApiTags,
@@ -40,6 +41,7 @@ export class AuthController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
+  @ApiConsumes('application/x-www-form-urlencoded')
   async login(@Body() item: LoginDto) {
     const { access_token, refresh_token, user, message } = await this.authService.login(item);
     return this.responseHandler.HandleResponse(
@@ -53,6 +55,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @IsPublic()
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -65,6 +68,7 @@ export class AuthController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
+  @ApiConsumes('application/x-www-form-urlencoded')
   async register(@Body() item: RegisterDto) {
     const { access_token, refresh_token, user, message } = await this.authService.register(item);
     return this.responseHandler.HandleResponse(

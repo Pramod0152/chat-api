@@ -10,6 +10,8 @@ import { ExceptionsFilterService } from './services/exception-filter.service';
 import { FrontendModule } from './frontend/frontend.module';
 import { ResponseModule } from './common/response/response.module';
 import { PassportModule } from '@nestjs/passport';
+import { AutomapperModule } from '@automapper/nestjs';
+import { classes } from '@automapper/classes';
 
 @Module({
   imports: [
@@ -18,6 +20,9 @@ import { PassportModule } from '@nestjs/passport';
     ResponseModule,
     GatewayModule,
     FrontendModule,
+    AutomapperModule.forRoot({
+      strategyInitializer: classes(),
+    }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     SequelizeModule.forRootAsync({
       useClass: SequelizeConfigService,

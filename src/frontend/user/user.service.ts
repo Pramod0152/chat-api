@@ -1,9 +1,16 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { User } from 'src/dal/entities/user.entity';
 import { UserDataService } from 'src/dal/user.data.service';
+import { ReadUserDto } from 'src/dto/user/read-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userDataService: UserDataService) {}
+  constructor(
+    private readonly userDataService: UserDataService,
+    @InjectMapper() private readonly mapper: Mapper,
+  ) {}
 
   /**
    * Fetch all users.
@@ -13,7 +20,7 @@ export class UserService {
     try {
       const users = await this.userDataService.findAll();
 
-      return users;
+      return this.mapper.mapArrayAsync(users, User, ReadUserDto);
     } catch (error) {
       throw error;
     }
