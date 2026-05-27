@@ -6,11 +6,9 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
-import { JwtAuthGuard } from 'src/frontend/auth/guards/jwt-auth.guard';
 
 @WebSocketGateway()
 export class GatewayService implements OnGatewayInit {
@@ -35,7 +33,7 @@ export class GatewayService implements OnGatewayInit {
           ignoreExpiration: false,
         });
 
-        socket.data.user = { id: payload.sub, name: 'pramod' };
+        socket.data.user = { id: payload.sub };
         next();
       } catch {
         next(new Error('Unauthorized'));
@@ -44,8 +42,5 @@ export class GatewayService implements OnGatewayInit {
   }
 
   @SubscribeMessage('message')
-  async handleMessage(@MessageBody() payload: unknown, @ConnectedSocket() client: Socket) {
-    const data = client.data.user;
-    console.log(payload, data.id, data.name);
-  }
+  async handleMessage(@MessageBody() payload: unknown, @ConnectedSocket() client: Socket) {}
 }

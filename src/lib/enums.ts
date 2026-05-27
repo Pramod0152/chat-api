@@ -8,8 +8,9 @@ export enum EnvVariableType {
 
 export enum SuccessMessageType {
   DefaultSuccessMessage = 'Success',
-  LoginSuccessMessage = 'Login successful',
-  RegisterSuccessMessage = 'User registered successfully',
+  LoginSuccessMessage = 'Login Successfully',
+  RegisterSuccessMessage = 'User Registered Successfully',
+  RefreshTokenSuccessMessage = 'Refresh Token Successfully',
 }
 
 export enum ErrorMessageType {
@@ -19,6 +20,11 @@ export enum ErrorMessageType {
   BadRequest = 'Bad Request',
   InternalServerError = 'Internal Server Error',
   DefaultErrorMessage = 'Something went wrong',
+  UserNotFound = 'User not found',
+  PasswordIncorrect = 'Password is incorrect',
+  EmailRequired = 'Email is required',
+  EmailAlreadyExists = 'Email already exists',
+  UsernameAlreadyExists = 'Username already exists',
 }
 
 export enum ThrottlerConfig {
@@ -43,4 +49,9 @@ export enum ErrorCodeType {
 
 export enum AuthVariable {
   SaltOrRounds = 10,
+}
+
+export enum ConversationType {
+  Group = 'Group',
+  Private = 'Private',
 }

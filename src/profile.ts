@@ -3,6 +3,8 @@ import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import { ReadUserDto } from './dto/user/read-user.dto';
 import { User } from './dal/entities/user.entity';
+import { ReadConversationDto } from './dto/conversation/read-conversation.dto';
+import { Conversation } from './dal/entities/conversation.entity';
 
 @Injectable()
 export class Profile extends AutomapperProfile {
@@ -13,6 +15,7 @@ export class Profile extends AutomapperProfile {
   override get profile() {
     return (mapper: Mapper) => {
       createMap(mapper, User, ReadUserDto);
+      createMap(mapper, Conversation, ReadConversationDto);
     };
   }
 }

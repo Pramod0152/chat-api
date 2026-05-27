@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from 'src/frontend/auth/auth.module';
 import { GatewayService } from './gateway.service';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [AuthModule],
+  imports: [JwtModule.register({})],
   providers: [GatewayService],
 })
 export class GatewayModule {}
