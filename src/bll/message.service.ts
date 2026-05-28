@@ -39,8 +39,8 @@ export class MessageService {
     return this.mapper.mapArrayAsync(messages, Message, ReadMessageDto);
   }
 
-  async findById(id: number) {
-    const message = await this.messageDataService.findById(id);
+  async findById(message_id: number) {
+    const message = await this.messageDataService.findById(message_id);
     if (!message) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
@@ -48,25 +48,25 @@ export class MessageService {
     return this.mapper.map(message, Message, ReadMessageDto);
   }
 
-  async update(id: number, item: UpdateMessageDto) {
-    const message = await this.messageDataService.findById(id);
+  async update(message_id: number, item: UpdateMessageDto) {
+    const message = await this.messageDataService.findById(message_id);
     if (!message) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    await this.messageDataService.updateMessage(id, item);
+    await this.messageDataService.updateMessage(message_id, item);
     return {
       message: 'Message updated successfully',
     };
   }
 
-  async deleteById(id: number) {
-    const message = await this.messageDataService.findById(id);
+  async deleteById(message_id: number) {
+    const message = await this.messageDataService.findById(message_id);
     if (!message) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    await this.messageDataService.deleteById(id);
+    await this.messageDataService.deleteById(message_id);
     return {
       message: 'Message deleted successfully',
     };

@@ -39,7 +39,8 @@ export class MessageController {
     description: 'Unauthorized!. ',
   })
   async create(@Request() req: any, @Body() item: CreateMessageDto) {
-    const data = await this.messageService.create(req.user.id, item);
+    const user_id = req.user.id;
+    const data = await this.messageService.create(user_id, item);
     return this.responseHandler.HandleResponse(data);
   }
 
@@ -61,7 +62,7 @@ export class MessageController {
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Get(':id')
+  @Get(':message_id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -74,12 +75,12 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findById(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.messageService.findById(id);
+  async findById(@Param('message_id', ParseIntPipe) message_id: number) {
+    const data = await this.messageService.findById(message_id);
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Patch(':id')
+  @Patch(':message_id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -92,12 +93,12 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async update(@Param('id', ParseIntPipe) id: number, @Body() item: UpdateMessageDto) {
-    const { message } = await this.messageService.update(id, item);
+  async update(@Param('message_id', ParseIntPipe) message_id: number, @Body() item: UpdateMessageDto) {
+    const { message } = await this.messageService.update(message_id, item);
     return this.responseHandler.HandleResponse({}, message);
   }
 
-  @Delete(':id')
+  @Delete(':message_id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -110,8 +111,8 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async deleteById(@Param('id', ParseIntPipe) id: number) {
-    const { message } = await this.messageService.deleteById(id);
+  async deleteById(@Param('message_id', ParseIntPipe) message_id: number) {
+    const { message } = await this.messageService.deleteById(message_id);
     return this.responseHandler.HandleResponse({}, message);
   }
 }

@@ -25,6 +25,7 @@ export enum ErrorMessageType {
   EmailRequired = 'Email is required',
   EmailAlreadyExists = 'Email already exists',
   UsernameAlreadyExists = 'Username already exists',
+  PrivateConversationParticipantLimit = 'Private conversations can only have one additional participant',
 }
 
 export enum ThrottlerConfig {

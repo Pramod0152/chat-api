@@ -55,7 +55,8 @@ export class UserController {
     description: 'Unauthorized!. ',
   })
   async findMe(@Request() req: any) {
-    const data = await this.userService.findById(req.user.id);
+    const user_id = req.user.id;
+    const data = await this.userService.findById(user_id);
     return this.responseHandler.HandleResponse(data);
   }
 }

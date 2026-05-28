@@ -20,19 +20,19 @@ export class ConversationDataService {
 
   async findAll() {
     return this.model.findAll({
-      include: ['admin'],
+      include: ['admin', 'participants'],
     });
   }
 
-  async findById(id: number) {
+  async findById(conversation_id: number) {
     return this.model.findOne({
-      where: { id },
-      include: ['admin'],
+      where: { id: conversation_id },
+      include: ['admin', 'participants'],
     });
   }
 
-  async updateConversation(id: number, item: UpdateConversationDto) {
-    const conversation = await this.findById(id);
+  async updateConversation(conversation_id: number, item: UpdateConversationDto) {
+    const conversation = await this.findById(conversation_id);
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
@@ -41,13 +41,13 @@ export class ConversationDataService {
     return conversation.update(filteredItem);
   }
 
-  async deleteById(id: number) {
+  async deleteById(conversation_id: number) {
     return this.model.update(
       {
         deleted_at: new Date(),
       },
       {
-        where: { id },
+        where: { id: conversation_id },
       },
     );
   }

@@ -1,32 +1,23 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ReadParticipantDto } from '../participant/read-participant.dto';
 import { ReadUserDto } from '../user/read-user.dto';
 
-export class ReadConversationDto {
+export class ReadParticipantDto {
   @ApiProperty()
   @AutoMap()
   id: number;
 
   @ApiProperty()
   @AutoMap()
-  admin_id: number;
+  conversation_id: number;
 
   @ApiProperty()
   @AutoMap()
-  type: string;
+  user_id: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @AutoMap()
-  group_name: string;
-
-  @ApiProperty()
-  @AutoMap()
-  group_image: string;
-
-  @ApiProperty()
-  @AutoMap()
-  status: string;
+  last_read_message_id?: number;
 
   @ApiProperty()
   @AutoMap()
@@ -38,9 +29,5 @@ export class ReadConversationDto {
 
   @ApiPropertyOptional({ type: ReadUserDto })
   @AutoMap(() => ReadUserDto)
-  admin?: ReadUserDto;
-
-  @ApiPropertyOptional({ type: [ReadParticipantDto] })
-  @AutoMap(() => [ReadParticipantDto])
-  participants?: ReadParticipantDto[];
+  user?: ReadUserDto;
 }

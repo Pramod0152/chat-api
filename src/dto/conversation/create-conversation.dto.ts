@@ -13,4 +13,8 @@ export class CreateConversationDto {
   @ApiPropertyOptional({ description: 'Group image URL for group conversations' })
   @IsOptional()
   group_image?: string;
+
+  @ApiPropertyOptional({ type: [Number], description: 'Participant user ids to add while creating conversation' })
+  @IsOptional()
+  participant_ids?: number[];
 }

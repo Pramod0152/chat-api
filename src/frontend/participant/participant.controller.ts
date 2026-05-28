@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -7,21 +7,21 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ConversationService } from 'src/bll/conversation.service';
+import { ParticipantService } from 'src/bll/participant.service';
 import { ResponseHandlerService } from 'src/common/response/response-handler.service';
-import { CreateConversationDto } from 'src/dto/conversation/create-conversation.dto';
-import { UpdateConversationDto } from 'src/dto/conversation/update-conversation.dto';
+import { CreateParticipantDto } from 'src/dto/participant/create-participant.dto';
+import { UpdateParticipantDto } from 'src/dto/participant/update-participant.dto';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@ApiTags('Conversations')
-@Controller('conversations')
+@ApiTags('Participants')
+@Controller('participants')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiExtraModels()
-export class ConversationController {
+export class ParticipantController {
   constructor(
-    private readonly conversationService: ConversationService,
+    private readonly participantService: ParticipantService,
     private readonly responseHandler: ResponseHandlerService,
   ) {}
 
@@ -38,9 +38,8 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async create(@Request() req: any, @Body() item: CreateConversationDto) {
-    const admin_id = req.user.id;
-    const data = await this.conversationService.create(admin_id, item);
+  async create(@Body() item: CreateParticipantDto) {
+    const data = await this.participantService.create(item);
     return this.responseHandler.HandleResponse(data);
   }
 
@@ -57,12 +56,12 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findAll() {
-    const data = await this.conversationService.findAll();
+  async findByConversationId(@Query('conversation_id', ParseIntPipe) conversation_id: number) {
+    const data = await this.participantService.findByConversationId(conversation_id);
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Get(':conversation_id')
+  @Get(':participant_id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -75,12 +74,12 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findById(@Param('conversation_id', ParseIntPipe) conversation_id: number) {
-    const data = await this.conversationService.findById(conversation_id);
+  async findById(@Param('participant_id', ParseIntPipe) participant_id: number) {
+    const data = await this.participantService.findById(participant_id);
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Patch(':conversation_id')
+  @Patch(':participant_id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -93,12 +92,12 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async update(@Param('conversation_id', ParseIntPipe) conversation_id: number, @Body() item: UpdateConversationDto) {
-    const { message } = await this.conversationService.update(conversation_id, item);
-    return this.responseHandler.HandleResponse({}, message);
+  async update(@Param('participant_id', ParseIntPipe) participant_id: number, @Body() item: UpdateParticipantDto) {
+    const data = await this.participantService.update(participant_id, item);
+    return this.responseHandler.HandleResponse(data);
   }
 
-  @Delete(':conversation_id')
+  @Delete(':participant_id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -111,8 +110,8 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async deleteById(@Param('conversation_id', ParseIntPipe) conversation_id: number) {
-    const { message } = await this.conversationService.deleteById(conversation_id);
+  async deleteById(@Param('participant_id', ParseIntPipe) participant_id: number) {
+    const { message } = await this.participantService.deleteById(participant_id);
     return this.responseHandler.HandleResponse({}, message);
   }
 }

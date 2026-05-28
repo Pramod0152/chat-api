@@ -28,15 +28,15 @@ export class MessageDataService {
     });
   }
 
-  async findById(id: number) {
+  async findById(message_id: number) {
     return this.model.findOne({
-      where: { id },
+      where: { id: message_id },
       include: ['user'],
     });
   }
 
-  async updateMessage(id: number, item: UpdateMessageDto) {
-    const message = await this.findById(id);
+  async updateMessage(message_id: number, item: UpdateMessageDto) {
+    const message = await this.findById(message_id);
     if (!message) {
       throw new NotFoundException('Message not found');
     }
@@ -49,13 +49,13 @@ export class MessageDataService {
     return message.update(filteredItem);
   }
 
-  async deleteById(id: number) {
+  async deleteById(message_id: number) {
     return this.model.update(
       {
         deleted_at: new Date(),
       },
       {
-        where: { id },
+        where: { id: message_id },
       },
     );
   }

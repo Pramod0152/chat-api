@@ -18,8 +18,8 @@ export class UserDataService {
     });
   }
 
-  async updateUser(id: any, item: any) {
-    const user = await this.findById(id);
+  async updateUser(user_id: any, item: any) {
+    const user = await this.findById(user_id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -34,10 +34,10 @@ export class UserDataService {
     });
   }
 
-  async findById(id: any) {
+  async findById(user_id: any) {
     return this.model.findOne({
       where: {
-        id,
+        id: user_id,
       },
     });
   }
@@ -58,13 +58,13 @@ export class UserDataService {
     });
   }
 
-  async updatePassword(id: any, password: string) {
+  async updatePassword(user_id: any, password: string) {
     return this.model.update(
       {
         password: password,
       },
       {
-        where: { id: id },
+        where: { id: user_id },
       },
     );
   }

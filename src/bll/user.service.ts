@@ -18,8 +18,8 @@ export class UserService {
     return this.mapper.mapArrayAsync(users, User, ReadUserDto);
   }
 
-  async findById(id: number) {
-    const user = await this.userDataService.findById(id);
+  async findById(user_id: number) {
+    const user = await this.userDataService.findById(user_id);
     if (!user) {
       throw new NotFoundException(ErrorMessageType.UserNotFound);
     }
