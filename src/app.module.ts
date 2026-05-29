@@ -15,6 +15,8 @@ import { classes } from '@automapper/classes';
 import { ServiceModule } from './bll/service.module';
 import { BullModule } from '@nestjs/bullmq';
 import { BullQueueModule } from './bull-module/bull-queue.module';
+import { WorkerModule } from './bll/worker/worker.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -35,12 +37,14 @@ import { BullQueueModule } from './bull-module/bull-queue.module';
       inject: [ConfigService],
     }),
     BullQueueModule,
+    WorkerModule,
     DalModule,
     ServiceModule,
     LoggerModule,
     ResponseModule,
     GatewayModule,
     FrontendModule,
+    EventEmitterModule.forRoot(),
     AutomapperModule.forRoot({
       strategyInitializer: classes(),
     }),

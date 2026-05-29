@@ -4,10 +4,11 @@ import { MessageService } from './message.service';
 import { ParticipantService } from './participant.service';
 import { Global, Module } from '@nestjs/common';
 import { Profile } from 'src/profile';
+import { MessageListener } from './listeners/message.listener';
 
 @Global()
 @Module({
-  providers: [UserService, ConversationService, MessageService, ParticipantService, Profile],
+  providers: [UserService, ConversationService, MessageService, ParticipantService, Profile, MessageListener],
   exports: [UserService, ConversationService, MessageService, ParticipantService],
 })
 export class ServiceModule {}

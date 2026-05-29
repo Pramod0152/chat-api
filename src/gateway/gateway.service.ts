@@ -9,6 +9,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { CreateMessageDto } from 'src/dto/message/create-message.dto';
 
 @WebSocketGateway()
 export class GatewayService implements OnGatewayInit {
@@ -18,6 +21,7 @@ export class GatewayService implements OnGatewayInit {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @InjectQueue('message-queue') private readonly messageQueue: Queue,
   ) {}
 
   afterInit(server: Server) {
@@ -41,6 +45,20 @@ export class GatewayService implements OnGatewayInit {
     });
   }
 
-  @SubscribeMessage('message')
-  async handleMessage(@MessageBody() payload: unknown, @ConnectedSocket() client: Socket) {}
+  @SubscribeMessage('send-message')
+  async handleMessage(@MessageBody() payload: CreateMessageDto, @ConnectedSocket() client: Socket) {
+    const data: any = {
+      conversation_id: payload.conversation_id,
+      user_id: client.data.user.id,
+      content: payload.content,
+      type: payload.type,
+    };
+
+    await this.messageQueue.add('message-queue', data);
+  }
+
+  async emitMessage(payload: any) {
+    console.log('emitMessage', payload);
+    this.server.emit(`on-message-received-${payload.conversation_id}`, payload);
+  }
 }

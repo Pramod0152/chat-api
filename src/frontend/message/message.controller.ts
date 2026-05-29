@@ -57,8 +57,8 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findAll(@Query('conversation_id', new ParseIntPipe({ optional: true })) conversation_id?: number) {
-    const data = await this.messageService.findAll(conversation_id);
+  async findAll(@Query('conversation_id', ParseIntPipe) conversation_id: number, @Request() req: any) {
+    const data = await this.messageService.findAll(conversation_id, req.user.id);
     return this.responseHandler.HandleResponse(data);
   }
 

@@ -10,13 +10,14 @@ export class MessageDataService {
   constructor(@InjectModel(Message) private readonly model: typeof Message) {}
 
   async createMessage(user_id: number, item: CreateMessageDto) {
-    return this.model.create({
+    const message = await this.model.create({
       conversation_id: item.conversation_id,
       user_id,
       content: item.content,
       type: item.type ?? MessageType.Text,
       is_updated: false,
     });
+    return message;
   }
 
   async findAll(conversation_id: number) {
@@ -25,6 +26,7 @@ export class MessageDataService {
         conversation_id,
       },
       include: ['user'],
+      order: [['created_at', 'DESC']],
     });
   }
 

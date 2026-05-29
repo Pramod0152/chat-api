@@ -59,4 +59,15 @@ export class ParticipantDataService {
       },
     );
   }
+
+  async updateLastReadMessageId(user_id: number, conversation_id: number, last_read_message_id: number) {
+    return this.model.update(
+      {
+        last_read_message_id,
+      },
+      {
+        where: { user_id, conversation_id },
+      },
+    );
+  }
 }

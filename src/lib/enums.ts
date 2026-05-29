@@ -26,6 +26,7 @@ export enum ErrorMessageType {
   EmailAlreadyExists = 'Email already exists',
   UsernameAlreadyExists = 'Username already exists',
   PrivateConversationParticipantLimit = 'Private conversations can only have one additional participant',
+  MessageNotCreated = 'Message not created',
 }
 
 export enum ThrottlerConfig {
@@ -59,4 +60,8 @@ export enum ConversationType {
 
 export enum MessageType {
   Text = 'Text',
+}
+
+export enum EventEmitterType {
+  UpdateLastMessage = 'update-last-message',
 }

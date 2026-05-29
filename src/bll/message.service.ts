@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MessageDataService } from 'src/dal/message.data.service';
 import { ConversationDataService } from 'src/dal/conversation.data.service';
 import { Message } from 'src/dal/entities/message.entity';
@@ -8,7 +8,8 @@ import { UserDataService } from 'src/dal/user.data.service';
 import { CreateMessageDto } from 'src/dto/message/create-message.dto';
 import { ReadMessageDto } from 'src/dto/message/read-message.dto';
 import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
-import { ErrorMessageType } from 'src/lib/enums';
+import { ErrorMessageType, EventEmitterType } from 'src/lib/enums';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class MessageService {
@@ -17,6 +18,7 @@ export class MessageService {
     private readonly conversationDataService: ConversationDataService,
     private readonly userDataService: UserDataService,
     @InjectMapper() private readonly mapper: Mapper,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(user_id: number, item: CreateMessageDto) {
@@ -31,12 +33,23 @@ export class MessageService {
     }
 
     const message = await this.messageDataService.createMessage(user_id, item);
+    if (!message) {
+      throw new BadRequestException(ErrorMessageType.MessageNotCreated);
+    }
     return this.mapper.mapAsync(message, Message, ReadMessageDto);
   }
 
-  async findAll(conversation_id?: number) {
+  async findAll(conversation_id: number, user_id: number) {
     const messages = await this.messageDataService.findAll(conversation_id);
-    return this.mapper.mapArrayAsync(messages, Message, ReadMessageDto);
+    const updatedMessages = await this.mapper.mapArrayAsync(messages, Message, ReadMessageDto);
+
+    const lastMessageId = updatedMessages[0];
+    this.eventEmitter.emit(EventEmitterType.UpdateLastMessage, {
+      message: lastMessageId,
+      user_id,
+    });
+
+    return updatedMessages;
   }
 
   async findById(message_id: number) {
