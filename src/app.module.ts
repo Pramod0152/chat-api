@@ -13,9 +13,28 @@ import { PassportModule } from '@nestjs/passport';
 import { AutomapperModule } from '@automapper/nestjs';
 import { classes } from '@automapper/classes';
 import { ServiceModule } from './bll/service.module';
+import { BullModule } from '@nestjs/bullmq';
+import { BullQueueModule } from './bull-module/bull-queue.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          username: configService.get<string>('REDIS_USERNAME'),
+          password: configService.get<string>('REDIS_PASSWORD'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    BullQueueModule,
     DalModule,
     ServiceModule,
     LoggerModule,
@@ -28,10 +47,6 @@ import { ServiceModule } from './bll/service.module';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     SequelizeModule.forRootAsync({
       useClass: SequelizeConfigService,
-    }),
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
     }),
   ],
   controllers: [],

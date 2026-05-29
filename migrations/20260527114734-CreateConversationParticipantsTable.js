@@ -29,8 +29,8 @@ module.exports = {
       },
 
       last_read_message_id: {
-        type: Sequelize.DATE,
-        allowNull: false,
+        type: Sequelize.INTEGER,
+        allowNull: true,
         references: {
           model: 'messages',
           key: 'id',
