@@ -10,6 +10,7 @@ import { ReadMessageDto } from 'src/dto/message/read-message.dto';
 import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
 import { ErrorMessageType, EventEmitterType } from 'src/lib/enums';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ParticipantDataService } from 'src/dal/participant.data.service';
 
 @Injectable()
 export class MessageService {
@@ -19,6 +20,7 @@ export class MessageService {
     private readonly userDataService: UserDataService,
     @InjectMapper() private readonly mapper: Mapper,
     private readonly eventEmitter: EventEmitter2,
+    private readonly participantDataService: ParticipantDataService,
   ) {}
 
   async create(user_id: number, item: CreateMessageDto) {
@@ -40,14 +42,22 @@ export class MessageService {
   }
 
   async findAll(conversation_id: number, user_id: number) {
+    const participant = await this.participantDataService.checkParticipantExists(user_id, conversation_id);
+    if (!participant) {
+      throw new NotFoundException(ErrorMessageType.NotFound);
+    }
+
     const messages = await this.messageDataService.findAll(conversation_id);
     const updatedMessages = await this.mapper.mapArrayAsync(messages, Message, ReadMessageDto);
 
-    const lastMessageId = updatedMessages[0];
-    this.eventEmitter.emit(EventEmitterType.UpdateLastMessage, {
-      message: lastMessageId,
-      user_id,
-    });
+    const recentMessage = updatedMessages[0];
+
+    if (participant.last_read_message_id < recentMessage.id) {
+      this.eventEmitter.emit(EventEmitterType.UpdateLastMessage, {
+        message: recentMessage,
+        user_id,
+      });
+    }
 
     return updatedMessages;
   }

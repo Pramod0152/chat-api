@@ -27,6 +27,13 @@ export class ConversationService {
 
     const participant_ids = [...new Set([admin_id, ...(item.participant_ids || [])])];
 
+    for (const user_id of participant_ids) {
+      const user = await this.userDataService.findById(user_id);
+      if (!user) {
+        throw new NotFoundException(`${ErrorMessageType.UserNotFound}: ${user_id}`);
+      }
+    }
+
     if (item.type === ConversationType.Private) {
       const additional_participant_ids = participant_ids.filter((user_id) => user_id !== admin_id);
       if (additional_participant_ids.length > 1) {
@@ -35,13 +42,6 @@ export class ConversationService {
     }
 
     const conversation = await this.conversationDataService.createConversation(admin_id, item);
-
-    for (const user_id of participant_ids) {
-      const participantUser = await this.userDataService.findById(user_id);
-      if (!participantUser) {
-        throw new NotFoundException(`${ErrorMessageType.UserNotFound}: ${user_id}`);
-      }
-    }
 
     await this.participantDataService.bulkCreateParticipants(conversation.id, participant_ids);
 

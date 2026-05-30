@@ -14,7 +14,7 @@ import { AutomapperModule } from '@automapper/nestjs';
 import { classes } from '@automapper/classes';
 import { ServiceModule } from './bll/service.module';
 import { BullModule } from '@nestjs/bullmq';
-import { BullQueueModule } from './bull-module/bull-queue.module';
+import { BullQueueModule } from './bull-queue.module';
 import { WorkerModule } from './bll/worker/worker.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
@@ -37,7 +37,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       inject: [ConfigService],
     }),
     BullQueueModule,
-    WorkerModule,
+    // WorkerModule,
     DalModule,
     ServiceModule,
     LoggerModule,

@@ -20,13 +20,19 @@ export class ConversationDataService {
 
   async findAll() {
     return this.model.findAll({
+      where: {
+        deleted_at: null,
+      },
       include: ['admin', 'participants'],
     });
   }
 
   async findById(conversation_id: number) {
     return this.model.findOne({
-      where: { id: conversation_id },
+      where: {
+        id: conversation_id,
+        deleted_at: null,
+      },
       include: ['admin', 'participants'],
     });
   }

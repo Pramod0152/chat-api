@@ -12,6 +12,10 @@ import { Server, Socket } from 'socket.io';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { CreateMessageDto } from 'src/dto/message/create-message.dto';
+import { ConversationDataService } from 'src/dal/conversation.data.service';
+import { ParticipantDataService } from 'src/dal/participant.data.service';
+import { ErrorMessageType } from 'src/lib/enums';
+import { BadRequestException } from '@nestjs/common';
 
 @WebSocketGateway()
 export class GatewayService implements OnGatewayInit {
@@ -22,6 +26,7 @@ export class GatewayService implements OnGatewayInit {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @InjectQueue('message-queue') private readonly messageQueue: Queue,
+    private readonly participantDataService: ParticipantDataService,
   ) {}
 
   afterInit(server: Server) {
@@ -47,6 +52,15 @@ export class GatewayService implements OnGatewayInit {
 
   @SubscribeMessage('send-message')
   async handleMessage(@MessageBody() payload: CreateMessageDto, @ConnectedSocket() client: Socket) {
+    const isParticipant = await this.participantDataService.checkParticipantExists(
+      client.data.user.id,
+      payload.conversation_id,
+    );
+
+    if (!isParticipant) {
+      throw new BadRequestException('Not a participant of this conversation');
+    }
+
     const data: any = {
       conversation_id: payload.conversation_id,
       user_id: client.data.user.id,
@@ -54,7 +68,13 @@ export class GatewayService implements OnGatewayInit {
       type: payload.type,
     };
 
-    await this.messageQueue.add('message-queue', data);
+    await this.messageQueue.add('message-queue', data, {
+      attempts: 3,
+      removeOnComplete: true,
+      removeOnFail: {
+        age: 1000 * 60 * 60 * 24,
+      },
+    });
   }
 
   async emitMessage(payload: any) {

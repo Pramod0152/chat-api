@@ -24,6 +24,7 @@ export class MessageDataService {
     return this.model.findAll({
       where: {
         conversation_id,
+        deleted_at: null,
       },
       include: ['user'],
       order: [['created_at', 'DESC']],
@@ -32,7 +33,10 @@ export class MessageDataService {
 
   async findById(message_id: number) {
     return this.model.findOne({
-      where: { id: message_id },
+      where: {
+        id: message_id,
+        deleted_at: null,
+      },
       include: ['user'],
     });
   }

@@ -27,14 +27,20 @@ export class ParticipantDataService {
 
   async findByConversationId(conversation_id: number) {
     return this.model.findAll({
-      where: { conversation_id },
+      where: {
+        conversation_id,
+        deleted_at: null,
+      },
       include: ['user'],
     });
   }
 
   async findById(participant_id: number) {
     return this.model.findOne({
-      where: { id: participant_id },
+      where: {
+        id: participant_id,
+        deleted_at: null,
+      },
       include: ['user'],
     });
   }
@@ -66,8 +72,21 @@ export class ParticipantDataService {
         last_read_message_id,
       },
       {
-        where: { user_id, conversation_id },
+        where: {
+          user_id,
+          conversation_id,
+        },
       },
     );
+  }
+
+  async checkParticipantExists(user_id: number, conversation_id: number) {
+    return this.model.findOne({
+      where: {
+        user_id,
+        conversation_id,
+        deleted_at: null,
+      },
+    });
   }
 }

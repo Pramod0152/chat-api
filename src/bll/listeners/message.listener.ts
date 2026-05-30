@@ -8,7 +8,7 @@ export class MessageListener {
   constructor(private readonly participantDataService: ParticipantDataService) {}
 
   @OnEvent(EventEmitterType.UpdateLastMessage)
-  async handleUpdateLastMessage(payload: any) {
+  async handleUpdateLastMessageRead(payload: any) {
     if (payload.user_id === payload.message.user_id) return;
 
     await this.participantDataService.updateLastReadMessageId(
