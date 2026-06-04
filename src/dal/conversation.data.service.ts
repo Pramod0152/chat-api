@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Op } from 'sequelize';
 import { Conversation } from './entities/conversation.entity';
 import { CreateConversationDto } from 'src/dto/conversation/create-conversation.dto';
 import { UpdateConversationDto } from '../dto/conversation/update-conversation.dto';
+import { Participant } from './entities/participant.entity';
 
 @Injectable()
 export class ConversationDataService {
@@ -18,12 +20,33 @@ export class ConversationDataService {
     });
   }
 
-  async findAll() {
+  async findAll(user_id: number) {
     return this.model.findAll({
       where: {
         deleted_at: null,
       },
-      include: ['admin', 'participants'],
+      include: [
+        'admin',
+        {
+          model: Participant,
+          as: 'participant',
+          where: {
+            user_id: user_id,
+            deleted_at: null,
+          },
+          required: true,
+        },
+        {
+          model: Participant,
+          as: 'participants',
+          where: {
+            deleted_at: null,
+            user_id: { [Op.ne]: user_id },
+          },
+          required: false,
+          include: ['user'],
+        },
+      ],
     });
   }
 

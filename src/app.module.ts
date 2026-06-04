@@ -17,6 +17,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { BullQueueModule } from './bull-queue.module';
 import { WorkerModule } from './bll/worker/worker.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { FirebaseModule } from './common/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -37,7 +38,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       inject: [ConfigService],
     }),
     BullQueueModule,
-    // WorkerModule,
+    FirebaseModule,
     DalModule,
     ServiceModule,
     LoggerModule,

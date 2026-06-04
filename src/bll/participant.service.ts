@@ -41,7 +41,12 @@ export class ParticipantService {
     return this.mapper.mapAsync(participant, Participant, ReadParticipantDto);
   }
 
-  async findByConversationId(conversation_id: number) {
+  async findByConversationId(conversation_id: number, user_id: number) {
+    const isParticipant = await this.participantDataService.checkParticipantExists(user_id, conversation_id);
+    if (!isParticipant) {
+      throw new NotFoundException(ErrorMessageType.NotFound);
+    }
+
     const participants = await this.participantDataService.findByConversationId(conversation_id);
     return this.mapper.mapArrayAsync(participants, Participant, ReadParticipantDto);
   }

@@ -48,8 +48,8 @@ export class ConversationService {
     return this.mapper.mapAsync(conversation, Conversation, ReadConversationDto);
   }
 
-  async findAll() {
-    const conversations = await this.conversationDataService.findAll();
+  async findAll(user_id: number) {
+    const conversations = await this.conversationDataService.findAll(user_id);
     return this.mapper.mapArrayAsync(conversations, Conversation, ReadConversationDto);
   }
 

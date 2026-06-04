@@ -1,6 +1,8 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -12,13 +14,18 @@ import { Server, Socket } from 'socket.io';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { CreateMessageDto } from 'src/dto/message/create-message.dto';
-import { ConversationDataService } from 'src/dal/conversation.data.service';
+import { ReadMessageDto } from 'src/dto/message/read-message.dto';
 import { ParticipantDataService } from 'src/dal/participant.data.service';
-import { ErrorMessageType } from 'src/lib/enums';
 import { BadRequestException } from '@nestjs/common';
 
-@WebSocketGateway()
-export class GatewayService implements OnGatewayInit {
+@WebSocketGateway({
+  cors: {
+    origin: 'http://localhost:5173', // your Vite dev origin
+    allowedHeaders: ['token'],
+    credentials: true,
+  },
+})
+export class GatewayService implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -50,6 +57,24 @@ export class GatewayService implements OnGatewayInit {
     });
   }
 
+  handleConnection(client: Socket) {
+    const user_id = client.data.user?.id;
+    if (!user_id) {
+      client.disconnect();
+      return;
+    }
+
+    client.join(`user-${user_id}`);
+    console.log(`User ${user_id} connected`);
+  }
+
+  handleDisconnect(client: Socket) {
+    const user_id = client.data.user?.id;
+    if (user_id) {
+      console.log(`User ${user_id} disconnected`);
+    }
+  }
+
   @SubscribeMessage('send-message')
   async handleMessage(@MessageBody() payload: CreateMessageDto, @ConnectedSocket() client: Socket) {
     const isParticipant = await this.participantDataService.checkParticipantExists(
@@ -77,8 +102,7 @@ export class GatewayService implements OnGatewayInit {
     });
   }
 
-  async emitMessage(payload: any) {
-    console.log('emitMessage', payload);
-    this.server.emit(`on-message-received-${payload.conversation_id}`, payload);
+  emitMessage(targetUserId: number, message: ReadMessageDto) {
+    this.server.to(`user-${targetUserId}`).emit('on-message-received', message);
   }
 }

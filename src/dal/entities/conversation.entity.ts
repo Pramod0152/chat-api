@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { BelongsTo, Column, HasMany, Model, Table } from 'sequelize-typescript';
+import { BelongsTo, Column, HasMany, HasOne, Model, Table } from 'sequelize-typescript';
 import { Participant } from './participant.entity';
 import { User } from './user.entity';
 
@@ -46,5 +46,10 @@ export class Conversation extends Model {
   admin: User;
 
   @HasMany(() => Participant, { foreignKey: 'conversation_id', sourceKey: 'id' })
+  @AutoMap(() => [Participant])
   participants: Participant[];
+
+  @HasOne(() => Participant, { foreignKey: 'conversation_id', sourceKey: 'id' })
+  @AutoMap(() => Participant)
+  participant: Participant;
 }

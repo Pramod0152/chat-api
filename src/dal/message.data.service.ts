@@ -17,7 +17,7 @@ export class MessageDataService {
       type: item.type ?? MessageType.Text,
       is_updated: false,
     });
-    return message;
+    return this.findById(message.id);
   }
 
   async findAll(conversation_id: number) {

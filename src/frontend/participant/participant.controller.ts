@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -56,8 +56,11 @@ export class ParticipantController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findByConversationId(@Query('conversation_id', ParseIntPipe) conversation_id: number) {
-    const data = await this.participantService.findByConversationId(conversation_id);
+  async findByConversationId(
+    @Query('conversation_id', ParseIntPipe) conversation_id: number,
+    @Request() req: any,
+  ) {
+    const data = await this.participantService.findByConversationId(conversation_id, req.user.id);
     return this.responseHandler.HandleResponse(data);
   }
 

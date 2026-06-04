@@ -57,8 +57,8 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findAll() {
-    const data = await this.conversationService.findAll();
+  async findAll(@Request() req: any) {
+    const data = await this.conversationService.findAll(req.user.id);
     return this.responseHandler.HandleResponse(data);
   }
 

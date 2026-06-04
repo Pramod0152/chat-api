@@ -15,6 +15,7 @@ import { RegisterDto } from 'src/dto/user/register.dto';
 import { ResponseHandlerService } from 'src/common/response/response-handler.service';
 import { IsPublic } from 'src/common/decorators/is-public.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { FirebaseService } from 'src/common/firebase/firebase.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -25,6 +26,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly responseHandler: ResponseHandlerService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   @Post('login')
@@ -79,5 +81,24 @@ export class AuthController {
       },
       message,
     );
+  }
+
+  @Post('notification')
+  @IsPublic()
+  @ApiNotFoundResponse({
+    type: GenericResponseDto,
+    description: 'Record Not Found!.',
+  })
+  @ApiBadRequestResponse({
+    type: GenericResponseDto,
+    description: 'Form Validation Error!. ',
+  })
+  @ApiUnauthorizedResponse({
+    type: GenericResponseDto,
+    description: 'Unauthorized!. ',
+  })
+  async sendNotification(@Body() item: any) {
+    const response = await this.firebaseService.sendNotification(item);
+    return this.responseHandler.HandleResponse(response);
   }
 }

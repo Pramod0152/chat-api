@@ -51,8 +51,7 @@ export class MessageService {
     const updatedMessages = await this.mapper.mapArrayAsync(messages, Message, ReadMessageDto);
 
     const recentMessage = updatedMessages[0];
-
-    if (participant.last_read_message_id < recentMessage.id) {
+    if (recentMessage && participant.last_read_message_id < recentMessage.id) {
       this.eventEmitter.emit(EventEmitterType.UpdateLastMessage, {
         message: recentMessage,
         user_id,
