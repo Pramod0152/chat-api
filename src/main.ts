@@ -10,6 +10,7 @@ import * as useragent from 'express-useragent';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import { isOriginAllowed } from './common/cors/allowed-origins';
 
 async function bootstrap() {
 	const app: NestApplication = await NestFactory.create(AppModule, {
@@ -34,19 +35,11 @@ async function bootstrap() {
 	/** Inject logger instance */
 	const logger: LoggerService = app.get<LoggerService>(LoggerService);
 
-	/** Enable Cors — allow all subdomains of taasnet.com, taascard.com, airbank.one + localhost */
-	const allowedDomains = [
-		/^https?:\/\/([a-z0-9-]+\.)*taasnet\.com$/,
-		/^https?:\/\/stagelink\.live$/,
-		/^https?:\/\/([a-z0-9-]+\.)*taascard\.com$/,
-		/^https?:\/\/([a-z0-9-]+\.)*airbank\.one$/,
-		/^https?:\/\/localhost(:\d+)?$/,
-	];
+	/** Enable Cors — allow production domains, localhost, and 127.0.0.1 (common in Edge/dev) */
 	app.enableCors({
 		origin: (origin, callback) => {
-			if (!origin) return callback(null, true);
-			const isAllowed = allowedDomains.some((regex) => regex.test(origin));
-			callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+			const allowed = isOriginAllowed(origin);
+			callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
 		},
 		credentials: true,
 		exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'],

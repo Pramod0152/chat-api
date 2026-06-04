@@ -16,15 +16,13 @@ export class FirebaseService {
   }
 
   async sendNotification(item: any): Promise<any> {
-    // generate fcm token
     try {
       const response = await admin.messaging().send({
-        token:
-          'fF7J72wo3KGeCN46d2hjNI:APA91bGBum2KflKClKLKEiADf27_FqO-dqaQP28ekSpmtLi_QhaKk0HvfGVfBQeM7IY2xXGRTkinl8f2TgJ6jVsws04rKso0GlB6r-H96pZRJ-DSHt8SHzA',
+        token: item.token,
         webpush: {
           notification: {
-            title: 'Firebase Notification',
-            body: 'Pramod Sent You a Notification',
+            title: item.title,
+            body: item.body,
           },
         },
       });

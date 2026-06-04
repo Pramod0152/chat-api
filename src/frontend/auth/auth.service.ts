@@ -26,6 +26,15 @@ export class AuthService {
       throw new BadRequestException(ErrorMessageType.PasswordIncorrect);
     }
 
+    if (item.fcm_token) {
+      await this.userDataServive.saveDeviceDetail(user.id, {
+        fcm_token: item.fcm_token,
+        device_id: item.device_id,
+        device_type: item.device_type,
+        version: item.version,
+      });
+    }
+
     const payload = { sub: user.id };
     const { access_token, refresh_token } = await this.getJwtTokens(payload);
 
@@ -85,6 +94,15 @@ export class AuthService {
     item.password = await bcrypt.hash(item.password, saltOrRounds);
 
     const user = await this.userDataServive.createUser(item);
+
+    if (item.fcm_token) {
+      await this.userDataServive.saveDeviceDetail(user.id, {
+        fcm_token: item.fcm_token,
+        device_id: item.device_id,
+        device_type: item.device_type,
+        version: item.version,
+      });
+    }
 
     const payload = { sub: user.id };
     const { access_token, refresh_token } = await this.getJwtTokens(payload);

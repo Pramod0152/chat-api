@@ -25,4 +25,20 @@ export class RegisterDto {
   @ApiPropertyOptional()
   @Transform(({ value }: { value: string }) => value?.trim())
   location: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  fcm_token?: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  device_id: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  device_type: string;
+
+  @ApiPropertyOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  version?: string;
 }

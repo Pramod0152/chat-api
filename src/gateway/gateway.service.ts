@@ -17,11 +17,18 @@ import { CreateMessageDto } from 'src/dto/message/create-message.dto';
 import { ReadMessageDto } from 'src/dto/message/read-message.dto';
 import { ParticipantDataService } from 'src/dal/participant.data.service';
 import { BadRequestException } from '@nestjs/common';
+import { isOriginAllowed } from 'src/common/cors/allowed-origins';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:5173', // your Vite dev origin
-    allowedHeaders: ['token'],
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    allowedHeaders: ['token', 'Authorization'],
     credentials: true,
   },
 })

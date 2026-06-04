@@ -20,6 +20,17 @@ module.exports = {
         },
       },
 
+      status: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+
+      version: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+
       device_id: {
         type: Sequelize.STRING,
         allowNull: true,

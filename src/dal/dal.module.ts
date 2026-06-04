@@ -8,10 +8,11 @@ import { Message } from './entities/message.entity';
 import { MessageDataService } from './message.data.service';
 import { Participant } from './entities/participant.entity';
 import { ParticipantDataService } from './participant.data.service';
+import { UserDeviceDetail } from './entities/user-device-detail.entity';
 
 @Global()
 @Module({
-  imports: [SequelizeModule.forFeature([User, Conversation, Message, Participant])],
+  imports: [SequelizeModule.forFeature([User, Conversation, Message, Participant, UserDeviceDetail])],
   providers: [UserDataService, ConversationDataService, MessageDataService, ParticipantDataService],
   exports: [UserDataService, ConversationDataService, MessageDataService, ParticipantDataService],
 })
