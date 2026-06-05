@@ -11,6 +11,7 @@ import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
 import { ErrorMessageType, EventEmitterType } from 'src/lib/enums';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ParticipantDataService } from 'src/dal/participant.data.service';
+import { FilterMessageDto } from 'src/dto/message/filter-message.dto';
 
 @Injectable()
 export class MessageService {
@@ -41,14 +42,14 @@ export class MessageService {
     return this.mapper.mapAsync(message, Message, ReadMessageDto);
   }
 
-  async findAll(conversation_id: number, user_id: number) {
-    const participant = await this.participantDataService.checkParticipantExists(user_id, conversation_id);
+  async findAll(user_id: number, query: FilterMessageDto) {
+    const participant = await this.participantDataService.checkParticipantExists(user_id, query.conversation_id);
     if (!participant) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    const messages = await this.messageDataService.findAll(conversation_id);
-    const updatedMessages = await this.mapper.mapArrayAsync(messages, Message, ReadMessageDto);
+    const { data, nextCursor } = await this.messageDataService.findAll(user_id, query);
+    const updatedMessages = await this.mapper.mapArrayAsync(data, Message, ReadMessageDto);
 
     const recentMessage = updatedMessages[0];
     if (recentMessage && participant.last_read_message_id < recentMessage.id) {
@@ -58,7 +59,10 @@ export class MessageService {
       });
     }
 
-    return updatedMessages;
+    return {
+      data: updatedMessages,
+      nextCursor,
+    };
   }
 
   async findById(message_id: number) {

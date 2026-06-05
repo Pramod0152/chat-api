@@ -53,6 +53,7 @@ export class AuthController {
         access_token,
         refresh_token,
       },
+      null,
       message,
     );
   }
@@ -80,6 +81,7 @@ export class AuthController {
         refresh_token,
         user,
       },
+      null,
       message,
     );
   }
@@ -107,6 +109,7 @@ export class AuthController {
         refresh_token,
         user,
       },
+      null,
       message,
     );
   }

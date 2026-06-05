@@ -1,8 +1,11 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 
-export class PaginationDto {
+export class FilterMessageDto {
+  @ApiProperty({ description: 'Conversation ID.' })
+  conversation_id: number;
+
   @ApiPropertyOptional({ description: 'Base64-encoded cursor from a previous response nextCursor.' })
   @IsOptional()
   @Transform(({ value }: TransformFnParams) =>

@@ -4,6 +4,8 @@ import { User } from './entities/user.entity';
 import { UserDeviceDetail } from './entities/user-device-detail.entity';
 import { RegisterDto } from 'src/dto/user/register.dto';
 import { Op } from 'sequelize';
+import { PaginationDto } from 'src/dto/pagination.dto';
+import { paginate } from 'src/common/pagination/paginate';
 
 export type SaveUserDeviceDetailInput = {
   device_id?: string;
@@ -44,10 +46,24 @@ export class UserDataService {
     return user.update(filtereditem);
   }
 
-  async findAll() {
-    return this.model.findAll({
-      attributes: { exclude: ['password'] },
+  async findAll(query: PaginationDto) {
+    const { limit = 10, cursor } = query;
+    const condition: any = {};
+
+    if (cursor != null) {
+      condition.id = { [Op.lt]: cursor };
+    }
+
+    const users = await this.model.findAll({
+      where: condition,
+      limit: limit + 1,
+      order: [
+        ['created_at', 'DESC'],
+        ['id', 'DESC'],
+      ],
     });
+
+    return paginate(users, limit);
   }
 
   async findById(user_id: any) {

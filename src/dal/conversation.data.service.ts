@@ -5,6 +5,8 @@ import { Conversation } from './entities/conversation.entity';
 import { CreateConversationDto } from 'src/dto/conversation/create-conversation.dto';
 import { UpdateConversationDto } from '../dto/conversation/update-conversation.dto';
 import { Participant } from './entities/participant.entity';
+import { PaginationDto } from 'src/dto/pagination.dto';
+import { paginate } from 'src/common/pagination/paginate';
 
 @Injectable()
 export class ConversationDataService {
@@ -20,11 +22,21 @@ export class ConversationDataService {
     });
   }
 
-  async findAll(user_id: number) {
-    return this.model.findAll({
-      where: {
-        deleted_at: null,
-      },
+  async findAll(user_id: number, query: PaginationDto) {
+    const { limit = 10, cursor } = query;
+    const condition: any = {};
+
+    if (cursor != null) {
+      condition.id = { [Op.lt]: cursor };
+    }
+
+    const conversations = await this.model.findAll({
+      where: condition,
+      limit: limit + 1,
+      order: [
+        ['created_at', 'DESC'],
+        ['id', 'DESC'],
+      ],
       include: [
         'admin',
         {
@@ -48,6 +60,7 @@ export class ConversationDataService {
         },
       ],
     });
+    return paginate(conversations, limit);
   }
 
   async findById(conversation_id: number) {

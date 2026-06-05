@@ -9,6 +9,7 @@ import { CreateParticipantDto } from 'src/dto/participant/create-participant.dto
 import { ReadParticipantDto } from 'src/dto/participant/read-participant.dto';
 import { UpdateParticipantDto } from 'src/dto/participant/update-participant.dto';
 import { ConversationType, ErrorMessageType } from 'src/lib/enums';
+import { FilterParticipantDto } from 'src/dto/participant/filter-participant.dto';
 
 @Injectable()
 export class ParticipantService {
@@ -31,7 +32,7 @@ export class ParticipantService {
     }
 
     if (conversation.type === ConversationType.Private) {
-      const existingParticipants = await this.participantDataService.findByConversationId(item.conversation_id);
+      const existingParticipants = await this.participantDataService.findAllParticipants(item.conversation_id);
       if (existingParticipants.length >= 2) {
         throw new BadRequestException(ErrorMessageType.PrivateConversationParticipantLimit);
       }
@@ -41,14 +42,19 @@ export class ParticipantService {
     return this.mapper.mapAsync(participant, Participant, ReadParticipantDto);
   }
 
-  async findByConversationId(conversation_id: number, user_id: number) {
-    const isParticipant = await this.participantDataService.checkParticipantExists(user_id, conversation_id);
+  async findByConversationId(query: FilterParticipantDto, user_id: number) {
+    const isParticipant = await this.participantDataService.checkParticipantExists(user_id, query.conversation_id);
     if (!isParticipant) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    const participants = await this.participantDataService.findByConversationId(conversation_id);
-    return this.mapper.mapArrayAsync(participants, Participant, ReadParticipantDto);
+    const { data, nextCursor } = await this.participantDataService.findByConversationId(query);
+    const updatedParticipants = await this.mapper.mapArrayAsync(data, Participant, ReadParticipantDto);
+
+    return {
+      data: updatedParticipants,
+      nextCursor,
+    };
   }
 
   async findById(participant_id: number) {
@@ -66,8 +72,10 @@ export class ParticipantService {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    const data = await this.participantDataService.updateParticipant(participant_id, item);
-    return this.mapper.mapAsync(data, Participant, ReadParticipantDto);
+    await this.participantDataService.updateParticipant(participant_id, item);
+    return {
+      message: 'Participant updated successfully',
+    };
   }
 
   async deleteById(participant_id: number) {

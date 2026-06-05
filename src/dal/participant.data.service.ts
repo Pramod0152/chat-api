@@ -3,6 +3,9 @@ import { InjectModel } from '@nestjs/sequelize';
 import { CreateParticipantDto } from 'src/dto/participant/create-participant.dto';
 import { UpdateParticipantDto } from 'src/dto/participant/update-participant.dto';
 import { Participant } from './entities/participant.entity';
+import { FilterParticipantDto } from 'src/dto/participant/filter-participant.dto';
+import { Op } from 'sequelize';
+import { paginate } from 'src/common/pagination/paginate';
 
 @Injectable()
 export class ParticipantDataService {
@@ -25,7 +28,32 @@ export class ParticipantDataService {
     return this.model.bulkCreate(values);
   }
 
-  async findByConversationId(conversation_id: number) {
+  async findByConversationId(query: FilterParticipantDto) {
+    const { limit = 10, cursor } = query;
+
+    const condition: any = {
+      conversation_id: query.conversation_id,
+      deleted_at: null,
+    };
+
+    if (cursor != null) {
+      condition.id = { [Op.lt]: cursor };
+    }
+
+    const participants = await this.model.findAll({
+      where: condition,
+      limit: limit + 1,
+      order: [
+        ['created_at', 'DESC'],
+        ['id', 'DESC'],
+      ],
+      include: ['user'],
+    });
+
+    return paginate(participants, limit);
+  }
+
+  async findAllParticipants(conversation_id: number) {
     return this.model.findAll({
       where: {
         conversation_id,

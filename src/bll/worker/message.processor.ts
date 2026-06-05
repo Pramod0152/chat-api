@@ -23,7 +23,7 @@ export class MessageProcessor extends WorkerHost {
     try {
       const payload = job.data;
       const message = await this.messageService.create(payload.user_id, payload as CreateMessageDto);
-      const participants = await this.participantDataService.findByConversationId(payload.conversation_id);
+      const participants = await this.participantDataService.findAllParticipants(payload.conversation_id);
       const user = await this.userDataService.findById(payload.user_id);
 
       for (const participant of participants) {

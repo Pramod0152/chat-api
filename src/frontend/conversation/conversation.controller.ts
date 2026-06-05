@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -13,6 +13,7 @@ import { CreateConversationDto } from 'src/dto/conversation/create-conversation.
 import { UpdateConversationDto } from 'src/dto/conversation/update-conversation.dto';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @ApiTags('Conversations')
 @Controller('conversations')
@@ -57,9 +58,9 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findAll(@Request() req: any) {
-    const data = await this.conversationService.findAll(req.user.id);
-    return this.responseHandler.HandleResponse(data);
+  async findAll(@Request() req: any, @Query() query: PaginationDto) {
+    const { data, nextCursor } = await this.conversationService.findAll(req.user.id, query);
+    return this.responseHandler.HandleResponse(data, nextCursor);
   }
 
   @Get(':conversation_id')
@@ -95,7 +96,7 @@ export class ConversationController {
   })
   async update(@Param('conversation_id', ParseIntPipe) conversation_id: number, @Body() item: UpdateConversationDto) {
     const { message } = await this.conversationService.update(conversation_id, item);
-    return this.responseHandler.HandleResponse({}, message);
+    return this.responseHandler.HandleResponse({}, null, message);
   }
 
   @Delete(':conversation_id')
@@ -113,6 +114,6 @@ export class ConversationController {
   })
   async deleteById(@Param('conversation_id', ParseIntPipe) conversation_id: number) {
     const { message } = await this.conversationService.deleteById(conversation_id);
-    return this.responseHandler.HandleResponse({}, message);
+    return this.responseHandler.HandleResponse({}, null, message);
   }
 }

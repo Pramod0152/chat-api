@@ -3,6 +3,7 @@ import { InjectMapper } from '@automapper/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from 'src/dal/entities/user.entity';
 import { UserDataService } from 'src/dal/user.data.service';
+import { PaginationDto } from 'src/dto/pagination.dto';
 import { ReadUserDto } from 'src/dto/user/read-user.dto';
 import { ErrorMessageType } from 'src/lib/enums';
 
@@ -13,9 +14,12 @@ export class UserService {
     @InjectMapper() private readonly mapper: Mapper,
   ) {}
 
-  async findAll() {
-    const users = await this.userDataService.findAll();
-    return this.mapper.mapArrayAsync(users, User, ReadUserDto);
+  async findAll(query: PaginationDto) {
+    const { data, nextCursor } = await this.userDataService.findAll(query);
+    return {
+      data: await this.mapper.mapArrayAsync(data, User, ReadUserDto),
+      nextCursor,
+    };
   }
 
   async findById(user_id: number) {

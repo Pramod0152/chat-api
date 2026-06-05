@@ -1,4 +1,4 @@
-import { Controller, Get, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -11,6 +11,7 @@ import { UserService } from '../../bll/user.service';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { ResponseHandlerService } from 'src/common/response/response-handler.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -36,9 +37,9 @@ export class UserController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findAll() {
-    const data = await this.userService.findAll();
-    return this.responseHandler.HandleResponse(data);
+  async findAll(@Query() query: PaginationDto) {
+    const { data, nextCursor } = await this.userService.findAll(query);
+    return this.responseHandler.HandleResponse(data, nextCursor);
   }
 
   @Get('/me')

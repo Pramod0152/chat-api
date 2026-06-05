@@ -8,6 +8,7 @@ import { UserDataService } from 'src/dal/user.data.service';
 import { CreateConversationDto } from 'src/dto/conversation/create-conversation.dto';
 import { ReadConversationDto } from 'src/dto/conversation/read-conversation.dto';
 import { UpdateConversationDto } from 'src/dto/conversation/update-conversation.dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 import { ConversationType, ErrorMessageType } from 'src/lib/enums';
 
 @Injectable()
@@ -48,9 +49,12 @@ export class ConversationService {
     return this.mapper.mapAsync(conversation, Conversation, ReadConversationDto);
   }
 
-  async findAll(user_id: number) {
-    const conversations = await this.conversationDataService.findAll(user_id);
-    return this.mapper.mapArrayAsync(conversations, Conversation, ReadConversationDto);
+  async findAll(user_id: number, query: PaginationDto) {
+    const { data, nextCursor } = await this.conversationDataService.findAll(user_id, query);
+    return {
+      data: await this.mapper.mapArrayAsync(data, Conversation, ReadConversationDto),
+      nextCursor,
+    };
   }
 
   async findById(conversation_id: number) {

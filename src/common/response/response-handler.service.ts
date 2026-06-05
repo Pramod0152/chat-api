@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { SuccessMessageType } from 'src/lib/enums';
 
 @Injectable()
 export class ResponseHandlerService {
-  constructor(private readonly configService: ConfigService) {}
-
-  public async HandleResponse(data: any, message?: string): Promise<GenericResponseDto<any>> {
-    const result: GenericResponseDto<any> = {
+  public async HandleResponse<T>(
+    data: T,
+    nextCursor?: number | null,
+    message?: string,
+  ): Promise<GenericResponseDto<T>> {
+    return {
       message: message || SuccessMessageType.DefaultSuccessMessage,
-      data: data || {},
+      data: data ?? ({} as T),
+      nextCursor: nextCursor != null ? Buffer.from(String(nextCursor), 'ascii').toString('base64') : null,
     };
-
-    return result;
   }
 }

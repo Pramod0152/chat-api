@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -13,6 +25,7 @@ import { CreateParticipantDto } from 'src/dto/participant/create-participant.dto
 import { UpdateParticipantDto } from 'src/dto/participant/update-participant.dto';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FilterParticipantDto } from 'src/dto/participant/filter-participant.dto';
 
 @ApiTags('Participants')
 @Controller('participants')
@@ -56,12 +69,9 @@ export class ParticipantController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findByConversationId(
-    @Query('conversation_id', ParseIntPipe) conversation_id: number,
-    @Request() req: any,
-  ) {
-    const data = await this.participantService.findByConversationId(conversation_id, req.user.id);
-    return this.responseHandler.HandleResponse(data);
+  async findByConversationId(@Query() query: FilterParticipantDto, @Request() req: any) {
+    const { data, nextCursor } = await this.participantService.findByConversationId(query, req.user.id);
+    return this.responseHandler.HandleResponse(data, nextCursor);
   }
 
   @Get(':participant_id')
@@ -96,8 +106,8 @@ export class ParticipantController {
     description: 'Unauthorized!. ',
   })
   async update(@Param('participant_id', ParseIntPipe) participant_id: number, @Body() item: UpdateParticipantDto) {
-    const data = await this.participantService.update(participant_id, item);
-    return this.responseHandler.HandleResponse(data);
+    const { message } = await this.participantService.update(participant_id, item);
+    return this.responseHandler.HandleResponse({}, null, message);
   }
 
   @Delete(':participant_id')
@@ -115,6 +125,6 @@ export class ParticipantController {
   })
   async deleteById(@Param('participant_id', ParseIntPipe) participant_id: number) {
     const { message } = await this.participantService.deleteById(participant_id);
-    return this.responseHandler.HandleResponse({}, message);
+    return this.responseHandler.HandleResponse({}, null, message);
   }
 }

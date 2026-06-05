@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -13,6 +25,8 @@ import { CreateMessageDto } from 'src/dto/message/create-message.dto';
 import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PaginationDto } from 'src/dto/pagination.dto';
+import { FilterMessageDto } from 'src/dto/message/filter-message.dto';
 
 @ApiTags('Messages')
 @Controller('messages')
@@ -57,9 +71,9 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findAll(@Query('conversation_id', ParseIntPipe) conversation_id: number, @Request() req: any) {
-    const data = await this.messageService.findAll(conversation_id, req.user.id);
-    return this.responseHandler.HandleResponse(data);
+  async findAll(@Query() query: FilterMessageDto, @Request() req: any) {
+    const { data, nextCursor } = await this.messageService.findAll(req.user.id, query);
+    return this.responseHandler.HandleResponse(data, nextCursor);
   }
 
   @Get(':message_id')
@@ -95,7 +109,7 @@ export class MessageController {
   })
   async update(@Param('message_id', ParseIntPipe) message_id: number, @Body() item: UpdateMessageDto) {
     const { message } = await this.messageService.update(message_id, item);
-    return this.responseHandler.HandleResponse({}, message);
+    return this.responseHandler.HandleResponse({}, null, message);
   }
 
   @Delete(':message_id')
@@ -113,6 +127,6 @@ export class MessageController {
   })
   async deleteById(@Param('message_id', ParseIntPipe) message_id: number) {
     const { message } = await this.messageService.deleteById(message_id);
-    return this.responseHandler.HandleResponse({}, message);
+    return this.responseHandler.HandleResponse({}, null, message);
   }
 }

@@ -4,6 +4,9 @@ import { Message } from './entities/message.entity';
 import { CreateMessageDto } from 'src/dto/message/create-message.dto';
 import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
 import { MessageType } from 'src/lib/enums';
+import { FilterMessageDto } from 'src/dto/message/filter-message.dto';
+import { Op } from 'sequelize';
+import { paginate } from 'src/common/pagination/paginate';
 
 @Injectable()
 export class MessageDataService {
@@ -20,15 +23,27 @@ export class MessageDataService {
     return this.findById(message.id);
   }
 
-  async findAll(conversation_id: number) {
-    return this.model.findAll({
-      where: {
-        conversation_id,
-        deleted_at: null,
-      },
+  async findAll(user_id: number, query: FilterMessageDto) {
+    const { limit = 10, cursor } = query;
+    const condition: any = {
+      conversation_id: query.conversation_id,
+      deleted_at: null,
+    };
+
+    if (cursor != null) {
+      condition.id = { [Op.lt]: cursor };
+    }
+
+    const messages = await this.model.findAll({
+      where: condition,
+      limit: limit + 1,
+      order: [
+        ['created_at', 'DESC'],
+        ['id', 'DESC'],
+      ],
       include: ['user'],
-      order: [['created_at', 'DESC']],
     });
+    return paginate(messages, limit);
   }
 
   async findById(message_id: number) {
