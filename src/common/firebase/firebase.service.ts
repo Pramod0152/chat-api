@@ -36,4 +36,8 @@ export class FirebaseService {
       };
     }
   }
+
+  async verifyUserFromSSO(token: string) {
+    return await admin.auth().verifyIdToken(token);
+  }
 }

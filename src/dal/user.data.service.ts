@@ -30,6 +30,10 @@ export class UserDataService {
     });
   }
 
+  async ssoUser(item: any) {
+    return this.model.create(item);
+  }
+
   async updateUser(user_id: any, item: any) {
     const user = await this.findById(user_id);
     if (!user) {

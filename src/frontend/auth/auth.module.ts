@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RtStrategy } from './strategies/jwt-refresh-token.strategy';
+import { UtilityService } from 'src/services/utility.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { RtStrategy } from './strategies/jwt-refresh-token.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RtStrategy, JwtAuthGuard],
+  providers: [AuthService, JwtStrategy, RtStrategy, JwtAuthGuard, UtilityService],
   exports: [AuthService, JwtAuthGuard, JwtModule, PassportModule],
 })
 export class AuthModule {}

@@ -6,6 +6,9 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from 'src/dto/user/login.dto';
 import { RegisterDto } from 'src/dto/user/register.dto';
 import { ErrorMessageType, SuccessMessageType } from 'src/lib/enums';
+import { SSOLoginDto } from 'src/dto/user/sso-login.dto';
+import { FirebaseService } from 'src/common/firebase/firebase.service';
+import { UtilityService } from 'src/services/utility.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +16,8 @@ export class AuthService {
     private readonly userDataServive: UserDataService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly firebaseService: FirebaseService,
+    private readonly utilityService: UtilityService,
   ) {}
 
   async login(item: LoginDto) {
@@ -129,6 +134,38 @@ export class AuthService {
       refresh_token,
       user: user,
       message: SuccessMessageType.RefreshTokenSuccessMessage,
+    };
+  }
+
+  async ssoLogin(item: SSOLoginDto) {
+    const user = await this.firebaseService.verifyUserFromSSO(item.sso_token);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    let existUser = await this.userDataServive.findByEmail(user.email);
+    if (!existUser) {
+      let username = user.name.split(' ').join('_').toLowerCase();
+
+      const password = await this.utilityService.makeRandomString(10);
+      const passwordHash = await bcrypt.hash(password, 10);
+      const registerData = {
+        username: username,
+        email: user.email,
+        password: passwordHash,
+        profile_image: user.picture,
+        bio: '',
+        location: '',
+      };
+      existUser = await this.userDataServive.ssoUser(registerData);
+    }
+
+    const payload = { sub: existUser.id };
+    const { access_token, refresh_token } = await this.getJwtTokens(payload);
+    return {
+      access_token,
+      refresh_token,
+      user: existUser,
+      message: 'SSO Login Success',
     };
   }
 }

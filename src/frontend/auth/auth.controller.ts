@@ -16,6 +16,7 @@ import { ResponseHandlerService } from 'src/common/response/response-handler.ser
 import { IsPublic } from 'src/common/decorators/is-public.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { FirebaseService } from 'src/common/firebase/firebase.service';
+import { SSOLoginDto } from 'src/dto/user/sso-login.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -73,6 +74,33 @@ export class AuthController {
   @ApiConsumes('application/x-www-form-urlencoded')
   async register(@Body() item: RegisterDto) {
     const { access_token, refresh_token, user, message } = await this.authService.register(item);
+    return this.responseHandler.HandleResponse(
+      {
+        access_token,
+        refresh_token,
+        user,
+      },
+      message,
+    );
+  }
+
+  @Post('sso-login')
+  @IsPublic()
+  @ApiNotFoundResponse({
+    type: GenericResponseDto,
+    description: 'Record Not Found!.',
+  })
+  @ApiBadRequestResponse({
+    type: GenericResponseDto,
+    description: 'Form Validation Error!. ',
+  })
+  @ApiUnauthorizedResponse({
+    type: GenericResponseDto,
+    description: 'Unauthorized!. ',
+  })
+  @ApiConsumes('application/x-www-form-urlencoded')
+  async ssoLogin(@Body() item: SSOLoginDto) {
+    const { access_token, refresh_token, user, message } = await this.authService.ssoLogin(item);
     return this.responseHandler.HandleResponse(
       {
         access_token,
