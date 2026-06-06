@@ -5,7 +5,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { SequelizeConfigService } from './services/sequelize-config.service';
 import { DalModule } from './dal/dal.module';
 import { LoggerModule } from './common/logger/logger.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ExceptionsFilterService } from './services/exception-filter.service';
 import { FrontendModule } from './frontend/frontend.module';
 import { ResponseModule } from './common/response/response.module';
@@ -18,6 +18,7 @@ import { BullQueueModule } from './bull-queue.module';
 import { WorkerModule } from './bll/worker/worker.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { FirebaseModule } from './common/firebase/firebase.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -45,6 +46,14 @@ import { FirebaseModule } from './common/firebase/firebase.module';
     ResponseModule,
     GatewayModule,
     FrontendModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60,
+          limit: 2000,
+        },
+      ],
+    }),
     EventEmitterModule.forRoot(),
     AutomapperModule.forRoot({
       strategyInitializer: classes(),
@@ -60,6 +69,10 @@ import { FirebaseModule } from './common/firebase/firebase.module';
     {
       provide: APP_FILTER,
       useClass: ExceptionsFilterService,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
