@@ -21,6 +21,10 @@ export class Participant extends Model {
   @AutoMap()
   last_read_message_id: number;
 
+  @Column({ defaultValue: false })
+  @AutoMap()
+  is_admin: boolean;
+
   @Column
   @AutoMap()
   created_at: Date;

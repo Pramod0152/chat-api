@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { MessageDataService } from 'src/dal/message.data.service';
 import { ConversationDataService } from 'src/dal/conversation.data.service';
 import { Message } from 'src/dal/entities/message.entity';
@@ -65,8 +65,8 @@ export class MessageService {
     };
   }
 
-  async findById(message_id: number) {
-    const message = await this.messageDataService.findById(message_id);
+  async findById(id: number) {
+    const message = await this.messageDataService.findById(id);
     if (!message) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
@@ -74,25 +74,33 @@ export class MessageService {
     return this.mapper.map(message, Message, ReadMessageDto);
   }
 
-  async update(message_id: number, item: UpdateMessageDto) {
-    const message = await this.messageDataService.findById(message_id);
+  async update(id: number, item: UpdateMessageDto, user_id: number) {
+    const message = await this.messageDataService.findById(id);
     if (!message) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    await this.messageDataService.updateMessage(message_id, item);
+    if (message.user_id !== user_id) {
+      throw new ForbiddenException('You are not authorized to update this message');
+    }
+
+    await this.messageDataService.updateMessage(id, item);
     return {
       message: 'Message updated successfully',
     };
   }
 
-  async deleteById(message_id: number) {
-    const message = await this.messageDataService.findById(message_id);
+  async deleteById(id: number, user_id: number) {
+    const message = await this.messageDataService.findById(id);
     if (!message) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    await this.messageDataService.deleteById(message_id);
+    if (message.user_id !== user_id) {
+      throw new ForbiddenException('You are not authorized to delete this message');
+    }
+
+    await this.messageDataService.deleteById(id);
     return {
       message: 'Message deleted successfully',
     };

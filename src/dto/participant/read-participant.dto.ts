@@ -21,6 +21,10 @@ export class ReadParticipantDto {
 
   @ApiProperty()
   @AutoMap()
+  is_admin: boolean;
+
+  @ApiProperty()
+  @AutoMap()
   created_at: Date;
 
   @ApiProperty()

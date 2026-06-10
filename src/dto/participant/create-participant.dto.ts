@@ -6,9 +6,5 @@ export class CreateParticipantDto {
   conversation_id: number;
 
   @ApiProperty()
-  user_id: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  last_read_message_id?: number;
+  user_ids: number[];
 }

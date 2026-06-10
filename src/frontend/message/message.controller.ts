@@ -25,7 +25,6 @@ import { CreateMessageDto } from 'src/dto/message/create-message.dto';
 import { UpdateMessageDto } from 'src/dto/message/update-message.dto';
 import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { PaginationDto } from 'src/dto/pagination.dto';
 import { FilterMessageDto } from 'src/dto/message/filter-message.dto';
 
 @ApiTags('Messages')
@@ -94,7 +93,7 @@ export class MessageController {
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Patch(':message_id')
+  @Patch(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -107,12 +106,12 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async update(@Param('message_id', ParseIntPipe) message_id: number, @Body() item: UpdateMessageDto) {
-    const { message } = await this.messageService.update(message_id, item);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() item: UpdateMessageDto, @Request() req: any) {
+    const { message } = await this.messageService.update(id, item, req.user.id);
     return this.responseHandler.HandleResponse({}, null, message);
   }
 
-  @Delete(':message_id')
+  @Delete(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -125,8 +124,8 @@ export class MessageController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async deleteById(@Param('message_id', ParseIntPipe) message_id: number) {
-    const { message } = await this.messageService.deleteById(message_id);
+  async deleteById(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const { message } = await this.messageService.deleteById(id, req.user.id);
     return this.responseHandler.HandleResponse({}, null, message);
   }
 }

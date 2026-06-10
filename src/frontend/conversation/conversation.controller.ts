@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -81,7 +93,7 @@ export class ConversationController {
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Patch(':conversation_id')
+  @Patch(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -94,12 +106,12 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async update(@Param('conversation_id', ParseIntPipe) conversation_id: number, @Body() item: UpdateConversationDto) {
-    const { message } = await this.conversationService.update(conversation_id, item);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() item: UpdateConversationDto, @Request() req: any) {
+    const { message } = await this.conversationService.update(id, item, req.user.id);
     return this.responseHandler.HandleResponse({}, null, message);
   }
 
-  @Delete(':conversation_id')
+  @Delete(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -112,8 +124,8 @@ export class ConversationController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async deleteById(@Param('conversation_id', ParseIntPipe) conversation_id: number) {
-    const { message } = await this.conversationService.deleteById(conversation_id);
+  async deleteById(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const { message } = await this.conversationService.deleteById(id, req.user.id);
     return this.responseHandler.HandleResponse({}, null, message);
   }
 }

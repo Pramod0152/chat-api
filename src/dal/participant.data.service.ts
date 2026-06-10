@@ -11,19 +11,12 @@ import { paginate } from 'src/common/pagination/paginate';
 export class ParticipantDataService {
   constructor(@InjectModel(Participant) private readonly model: typeof Participant) {}
 
-  async createParticipant(item: CreateParticipantDto) {
-    return this.model.create({
-      conversation_id: item.conversation_id,
-      user_id: item.user_id,
-      last_read_message_id: item.last_read_message_id ?? null,
-    });
-  }
-
-  async bulkCreateParticipants(conversation_id: number, user_ids: number[]) {
+  async bulkCreateParticipants(conversation_id: number, user_ids: number[], admin_id?: number) {
     const values = user_ids.map((user_id) => ({
       conversation_id,
       user_id,
       last_read_message_id: null,
+      is_admin: admin_id != null && user_id === admin_id,
     }));
     return this.model.bulkCreate(values);
   }
@@ -73,6 +66,17 @@ export class ParticipantDataService {
     });
   }
 
+  async isAdmin(conversation_id: number, user_id: number) {
+    return this.model.findOne({
+      where: {
+        conversation_id,
+        user_id,
+        is_admin: true,
+        deleted_at: null,
+      },
+    });
+  }
+
   async updateParticipant(participant_id: number, item: UpdateParticipantDto) {
     const participant = await this.findById(participant_id);
     if (!participant) {
@@ -84,14 +88,9 @@ export class ParticipantDataService {
   }
 
   async deleteById(participant_id: number) {
-    return this.model.update(
-      {
-        deleted_at: new Date(),
-      },
-      {
-        where: { id: participant_id },
-      },
-    );
+    return this.model.destroy({
+      where: { id: participant_id },
+    });
   }
 
   async updateLastReadMessageId(user_id: number, conversation_id: number, last_read_message_id: number) {

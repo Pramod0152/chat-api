@@ -51,8 +51,8 @@ export class ParticipantController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async create(@Body() item: CreateParticipantDto) {
-    const data = await this.participantService.create(item);
+  async create(@Body() item: CreateParticipantDto, @Request() req: any) {
+    const data = await this.participantService.create(item, req.user.id);
     return this.responseHandler.HandleResponse(data);
   }
 
@@ -74,7 +74,7 @@ export class ParticipantController {
     return this.responseHandler.HandleResponse(data, nextCursor);
   }
 
-  @Get(':participant_id')
+  @Get(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -87,12 +87,12 @@ export class ParticipantController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findById(@Param('participant_id', ParseIntPipe) participant_id: number) {
-    const data = await this.participantService.findById(participant_id);
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.participantService.findById(id);
     return this.responseHandler.HandleResponse(data);
   }
 
-  @Patch(':participant_id')
+  @Patch(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -105,12 +105,12 @@ export class ParticipantController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async update(@Param('participant_id', ParseIntPipe) participant_id: number, @Body() item: UpdateParticipantDto) {
-    const { message } = await this.participantService.update(participant_id, item);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() item: UpdateParticipantDto, @Request() req: any) {
+    const { message } = await this.participantService.update(id, item, req.user.id);
     return this.responseHandler.HandleResponse({}, null, message);
   }
 
-  @Delete(':participant_id')
+  @Delete(':id')
   @ApiNotFoundResponse({
     type: GenericResponseDto,
     description: 'Record Not Found!.',
@@ -123,8 +123,8 @@ export class ParticipantController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async deleteById(@Param('participant_id', ParseIntPipe) participant_id: number) {
-    const { message } = await this.participantService.deleteById(participant_id);
+  async deleteById(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const { message } = await this.participantService.deleteById(id, req.user.id);
     return this.responseHandler.HandleResponse({}, null, message);
   }
 }

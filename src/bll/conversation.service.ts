@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConversationDataService } from 'src/dal/conversation.data.service';
 import { Conversation } from 'src/dal/entities/conversation.entity';
 import { ParticipantDataService } from 'src/dal/participant.data.service';
@@ -44,7 +44,7 @@ export class ConversationService {
 
     const conversation = await this.conversationDataService.createConversation(admin_id, item);
 
-    await this.participantDataService.bulkCreateParticipants(conversation.id, participant_ids);
+    await this.participantDataService.bulkCreateParticipants(conversation.id, participant_ids, admin_id);
 
     return this.mapper.mapAsync(conversation, Conversation, ReadConversationDto);
   }
@@ -66,25 +66,33 @@ export class ConversationService {
     return this.mapper.map(conversation, Conversation, ReadConversationDto);
   }
 
-  async update(conversation_id: number, item: UpdateConversationDto) {
-    const conversation = await this.conversationDataService.findById(conversation_id);
+  async update(id: number, item: UpdateConversationDto, user_id: number) {
+    const conversation = await this.conversationDataService.findById(id);
     if (!conversation) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    await this.conversationDataService.updateConversation(conversation_id, item);
+    if (conversation.admin_id !== user_id) {
+      throw new ForbiddenException('You are not allowed to update this conversation');
+    }
+
+    await this.conversationDataService.updateConversation(id, item);
     return {
       message: 'Conversation updated successfully',
     };
   }
 
-  async deleteById(conversation_id: number) {
-    const conversation = await this.conversationDataService.findById(conversation_id);
+  async deleteById(id: number, user_id: number) {
+    const conversation = await this.conversationDataService.findById(id);
     if (!conversation) {
       throw new NotFoundException(ErrorMessageType.NotFound);
     }
 
-    await this.conversationDataService.deleteById(conversation_id);
+    if (conversation.admin_id !== user_id) {
+      throw new ForbiddenException('You are not allowed to delete this conversation');
+    }
+
+    await this.conversationDataService.deleteById(id);
     return {
       message: 'Conversation deleted successfully',
     };
