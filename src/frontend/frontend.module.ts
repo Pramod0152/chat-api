@@ -4,8 +4,9 @@ import { UserModule } from './user/user.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { MessageModule } from './message/message.module';
 import { ParticipantModule } from './participant/participant.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
-  imports: [AuthModule, UserModule, ConversationModule, MessageModule, ParticipantModule],
+  imports: [AuthModule, UserModule, ConversationModule, MessageModule, ParticipantModule, AiModule],
 })
 export class FrontendModule {}

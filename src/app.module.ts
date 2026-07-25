@@ -39,6 +39,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       inject: [ConfigService],
     }),
     BullQueueModule,
+    WorkerModule,
     FirebaseModule,
     DalModule,
     ServiceModule,

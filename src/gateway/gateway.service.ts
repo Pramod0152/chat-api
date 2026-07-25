@@ -109,6 +109,29 @@ export class GatewayService implements OnGatewayInit, OnGatewayConnection, OnGat
     });
   }
 
+  @SubscribeMessage('typing')
+  async handleTyping(
+    @MessageBody() payload: { conversation_id: number; isTyping: boolean },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const isParticipant = await this.participantDataService.checkParticipantExists(
+      client.data.user.id,
+      payload.conversation_id,
+    );
+    if (!isParticipant) return;
+
+    const participants = await this.participantDataService.findAllParticipants(payload.conversation_id);
+
+    for (const participant of participants) {
+      if (participant.user_id === client.data.user.id) continue;
+      this.server.to(`user-${participant.user_id}`).emit('user-typing', {
+        conversation_id: payload.conversation_id,
+        user_id: client.data.user.id,
+        isTyping: payload.isTyping,
+      });
+    }
+  }
+
   emitMessage(targetUserId: number, message: ReadMessageDto) {
     this.server.to(`user-${targetUserId}`).emit('on-message-received', message);
   }

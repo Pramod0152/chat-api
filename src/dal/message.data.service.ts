@@ -10,7 +10,7 @@ import { paginate } from 'src/common/pagination/paginate';
 
 @Injectable()
 export class MessageDataService {
-  constructor(@InjectModel(Message) private readonly model: typeof Message) {}
+  constructor(@InjectModel(Message) private readonly model: typeof Message) { }
 
   async createMessage(user_id: number, item: CreateMessageDto) {
     const message = await this.model.create({
@@ -23,12 +23,18 @@ export class MessageDataService {
     return this.findById(message.id);
   }
 
-  async findAll(user_id: number, query: FilterMessageDto) {
+  async findAll(user_id: number, query: FilterMessageDto, order: 'ASC' | 'DESC' = 'DESC') {
     const { limit = 10, cursor } = query;
     const condition: any = {
       conversation_id: query.conversation_id,
       deleted_at: null,
     };
+
+    // Filter summary messages: only show summary messages created by the requesting user
+    condition[Op.or] = [
+      { type: { [Op.ne]: MessageType.Summary } }, // Show all non-summary messages
+      { type: MessageType.Summary, user_id: user_id }, // Show summary messages only if created by the user
+    ];
 
     if (cursor != null) {
       condition.id = { [Op.lt]: cursor };
@@ -38,8 +44,8 @@ export class MessageDataService {
       where: condition,
       limit: limit + 1,
       order: [
-        ['created_at', 'DESC'],
-        ['id', 'DESC'],
+        ['created_at', order],
+        ['id', order],
       ],
       include: ['user'],
     });

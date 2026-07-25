@@ -60,6 +60,7 @@ export enum ConversationType {
 
 export enum MessageType {
   Text = 'Text',
+  Summary = 'Summary',
 }
 
 export enum EventEmitterType {

@@ -24,7 +24,9 @@ export class ConversationDataService {
 
   async findAll(user_id: number, query: PaginationDto) {
     const { limit = 10, cursor } = query;
-    const condition: any = {};
+    const condition: any = {
+      deleted_at: null,
+    };
 
     if (cursor != null) {
       condition.id = { [Op.lt]: cursor };

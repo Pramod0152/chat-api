@@ -1,6 +1,6 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConversationDataService } from 'src/dal/conversation.data.service';
 import { ParticipantDataService } from 'src/dal/participant.data.service';
 import { Participant } from 'src/dal/entities/participant.entity';
@@ -82,7 +82,7 @@ export class ParticipantService {
 
     const isAdmin = await this.participantDataService.isAdmin(participant.conversation_id, user_id);
 
-    if (participant.user_id !== user_id || !isAdmin) {
+    if (participant.user_id !== user_id && !isAdmin) {
       throw new ForbiddenException('You are not allowed to update this participant');
     }
 
@@ -105,7 +105,7 @@ export class ParticipantService {
 
     const isAdmin = await this.participantDataService.isAdmin(participant.conversation_id, user_id);
 
-    if (participant.user_id === user_id || isAdmin) {
+    if (participant.user_id === user_id && !isAdmin) {
       await this.participantDataService.deleteById(id);
 
       return {
