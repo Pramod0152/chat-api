@@ -24,7 +24,7 @@ export class MessageDataService {
   }
 
   async findAll(user_id: number, query: FilterMessageDto, order: 'ASC' | 'DESC' = 'DESC') {
-    const { limit = 10, cursor } = query;
+    const { limit = 20, cursor } = query;
     const condition: any = {
       conversation_id: query.conversation_id,
       deleted_at: null,
@@ -50,6 +50,27 @@ export class MessageDataService {
       include: ['user'],
     });
     return paginate(messages, limit);
+  }
+
+  async findForSummary(conversation_id: number, limit: number = 15) {
+    const condition: any = {
+      conversation_id: conversation_id,
+      deleted_at: null,
+      type: MessageType.Text, // Only fetch Text type messages for AI summarization
+    };
+
+    const messages = await this.model.findAll({
+      where: condition,
+      limit: limit,
+      order: [
+        ['created_at', 'DESC'], // Get most recent messages first
+        ['id', 'DESC'],
+      ],
+      include: ['user'],
+    });
+
+    // Reverse to get chronological order for the AI
+    return messages.reverse();
   }
 
   async findById(message_id: number) {

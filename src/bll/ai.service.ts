@@ -20,40 +20,49 @@ export class AiService {
   }
 
   async generateSummary(user_id: number, query: FilterMessageDto) {
-    // Fetch messages using your Data Access Layer service
-    const messages = await this.messageService.findAll(user_id, query, 'ASC');
+    // Fetch messages using the dedicated AI summary method (only Text type, recent 15+ messages)
+    const messages = await this.messageService.findForSummary(query.conversation_id, 15);
 
-    if (!messages || !messages.data || messages.data.length === 0) {
+    if (!messages || messages.length === 0) {
       return { summary: 'No messages found to summarize for this conversation.' };
     }
 
-    // Map message content cleanly
-    const messageContents = messages.data
+    // 1. Identify the other user's name dynamically for the prompt context
+    const otherUserMsg = messages.find(
+      (msg) => (msg.user?.id || msg.user_id) !== user_id
+    );
+    const otherUserName = otherUserMsg?.user?.username || 'The other person';
+
+    // 2. Map message content dynamically to "You" and "Username"
+    const messageContents = messages
       .map((msg) => {
-        const senderName = msg.user?.id ? `User ${msg.user.id}` : `User ${msg.user_id}`;
+        const senderId = msg.user?.id || msg.user_id;
+        const isRequester = senderId === user_id;
+
+        // Label the requester as 'You', otherwise use their username
+        const senderName = isRequester ? 'You' : (msg.user?.username || `User ${senderId}`);
         return `${senderName}: ${msg.content}`;
       })
       .join('\n');
 
-    // Define exactly how the model should behave using systemInstruction
-    const systemInstruction = `You are a highly efficient assistant summarizing chats for a busy reader. 
-    Your goal is to explain exactly what was discussed and who said what in the simplest terms possible. Do not use flowery or academic language.
+    console.log('messageContents', messageContents);
 
-    Structure your response using the exact following format:
+    // 3. Define the conversational, direct-to-user prompt
+    const systemInstruction = `You are a helpful assistant getting a user up to speed on their chat.
+    Your goal is to give a very simple, plain-English summary of what is going on so they know how to reply next.
+    Talk directly to the user using "You". Refer to the other person as "${otherUserName}".
+    Do NOT use formal, dramatic, or academic language. Keep it casual and highly practical.
 
-    ### ⚡ TL;DR
-    (A 1-2 sentence quick summary of the bottom line.)
+    Structure your response using exactly this format:
 
-    ### 🗣️ Who Said What
-    * **[Insert User Name]:** (1 sentence summary of their main stance or problem)
-    * **[Insert User Name]:** (1 sentence summary of their main stance or advice)
+    ### 📝 The Context
+    (1-2 simple sentences explaining what you both were talking about.)
 
-    ### 📌 Key Topics Discussed
-    * (Bullet point 1 - plain English explanation of a topic)
-    * (Bullet point 2 - plain English explanation of a topic)
+    ### 🗣️ What ${otherUserName} Is Saying
+    (A brief, simple explanation of their main point. What do they mean?)
 
-    ### 🎯 Conclusion / Status
-    (How the conversation ended or what the next step is.)`;
+    ### 📍 Right Now
+    (What exactly is happening at the very end of the chat to help you figure out what to reply—e.g., "They just said hi, waiting for your reply.")`;
 
     try {
       // Generate summary using the official @google/genai SDK
@@ -62,14 +71,14 @@ export class AiService {
         contents: `--- Chat History ---\n${messageContents}`,
         config: {
           systemInstruction: systemInstruction,
-          temperature: 0.3, // Lowered from 0.7 to keep the output factual, direct, and concise
-          maxOutputTokens: 1000, // Sufficient for a concise, bulleted summary
+          temperature: 0.2, // Very low temperature for simple, factual summaries
+          maxOutputTokens: 2000,
         },
       });
 
       const summaryText = response.text;
 
-      // Save the summary as a message in the conversation
+      // 4. Save the summary as a message in the conversation
       const createMessageDto: CreateMessageDto = {
         conversation_id: query.conversation_id,
         content: summaryText,
