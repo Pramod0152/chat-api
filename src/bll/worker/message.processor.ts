@@ -31,12 +31,14 @@ export class MessageProcessor extends WorkerHost {
         this.gateway.emitMessage(participant.user_id, message);
 
         const tokens = await this.userDataService.findAllTokens(participant.user_id);
-        for (const token of tokens) {
-          await this.firebaseService.sendNotification({
-            token: token.fcm_token,
-            body: message.content,
-            title: user.username + ' sent you a message',
-          });
+        if (tokens.length > 0) {
+          for (const token of tokens) {
+            await this.firebaseService.sendNotification({
+              token: token.fcm_token,
+              body: message.content,
+              title: user.username + ' sent you a message',
+            });
+          }
         }
       }
     } catch (error) {
