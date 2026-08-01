@@ -13,124 +13,127 @@ import { existsSync, mkdirSync } from 'fs';
 import { isOriginAllowed } from './common/cors/allowed-origins';
 
 async function bootstrap() {
-	const app: NestApplication = await NestFactory.create(AppModule, {
-		abortOnError: false,
-		rawBody: true,
-	});
+  const app: NestApplication = await NestFactory.create(AppModule, {
+    abortOnError: false,
+    rawBody: true,
+  });
 
-	/** config  variable */
-	const configService = app.get(ConfigService);
+  /** config  variable */
+  const configService = app.get(ConfigService);
 
-	const port: number = configService.get<number>('HTTP_PORT');
+  const port: number = configService.get<number>('HTTP_PORT');
 
-	const globalPrifix: string = configService.get<string>('GLOBAL_PREFIX');
-	const apiVersion: string = configService.get<string>('API_VERSION');
+  const globalPrifix: string = configService.get<string>('GLOBAL_PREFIX');
+  const apiVersion: string = configService.get<string>('API_VERSION');
 
-	/** useragent for enhanced log of the request */
-	app.use(useragent.express());
+  /** useragent for enhanced log of the request */
+  app.use(useragent.express());
 
-	/** Cookie parser for cookie-based authentication */
-	app.use(cookieParser());
+  /** Cookie parser for cookie-based authentication */
+  app.use(cookieParser());
 
-	/** Inject logger instance */
-	const logger: LoggerService = app.get<LoggerService>(LoggerService);
+  /** Inject logger instance */
+  const logger: LoggerService = app.get<LoggerService>(LoggerService);
 
-	/** Enable Cors — allow production domains, localhost, and 127.0.0.1 (common in Edge/dev) */
-	app.enableCors({
-		origin: (origin, callback) => {
-			const allowed = isOriginAllowed(origin);
-			callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
-		},
-		credentials: true,
-		exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'],
-	});
+  /** Enable Cors — allow production domains, localhost, and 127.0.0.1 (common in Edge/dev) */
+  app.enableCors({
+    origin: (origin, callback) => {
+      const allowed = isOriginAllowed(origin);
+      callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
+    },
+    credentials: true,
+    exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'],
+  });
 
-	/** Intercepter to add no-cach header */
-	app.useGlobalInterceptors();
+  /** Intercepter to add no-cach header */
+  app.useGlobalInterceptors();
 
-	/**
-	 * NOTE: If we implements reverse proxy for compression we should not use compression middleware.
-	 * Because gzip compressin will hit on the processor.
-	 * For high-traffic websites in production, it is strongly recommended to offload compression from the application server
-	 */
-	app.use(compression());
+  /**
+   * NOTE: If we implements reverse proxy for compression we should not use compression middleware.
+   * Because gzip compressin will hit on the processor.
+   * For high-traffic websites in production, it is strongly recommended to offload compression from the application server
+   */
+  app.use(compression());
 
-	/** Helmet will secure api by setting various HTTP headers */
-	// app.use(helmet());
+  /** Helmet will secure api by setting various HTTP headers */
+  // app.use(helmet());
 
-	/** Config validation pipes for class validation.*/
-	app.useGlobalPipes(
-		new ValidationPipe({
-			transform: true,
-			exceptionFactory: (errors: ValidationError[]) => {
-				const formatErrors = (errs: ValidationError[]) => {
-					const messages = [];
-					for (const error of errs) {
-						if (error.constraints) {
-							messages.push(...Object.values(error.constraints));
-						}
-						if (error.children && error.children.length) {
-							messages.push(...formatErrors(error.children));
-						}
-					}
-					return messages;
-				};
-				const errorMessage = formatErrors(errors).join(', ');
-				return new BadRequestException({
-					message: errorMessage,
-				});
-			},
-		}),
-	);
+  /** Config validation pipes for class validation.*/
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      exceptionFactory: (errors: ValidationError[]) => {
+        const formatErrors = (errs: ValidationError[]) => {
+          const messages = [];
+          for (const error of errs) {
+            if (error.constraints) {
+              messages.push(...Object.values(error.constraints));
+            }
+            if (error.children && error.children.length) {
+              messages.push(...formatErrors(error.children));
+            }
+          }
+          return messages;
+        };
+        const errorMessage = formatErrors(errors).join(', ');
+        return new BadRequestException({
+          message: errorMessage,
+        });
+      },
+    }),
+  );
 
-	/** Prefix for all api */
-	app.setGlobalPrefix(globalPrifix + '/' + apiVersion, {
-		exclude: [
-			{ path: 'robots.txt', method: RequestMethod.GET },
-			{ path: 'file/access', method: RequestMethod.GET },
-		],
-	});
+  /** Prefix for all api */
+  app.setGlobalPrefix(globalPrifix + '/' + apiVersion, {
+    exclude: [
+      { path: 'robots.txt', method: RequestMethod.GET },
+      { path: 'file/access', method: RequestMethod.GET },
+    ],
+  });
 
-	// Serve static files from 'uploads' directory
-	app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-		prefix: '/uploads',
-		setHeaders: (res) => {
-			res.setHeader('Access-Control-Allow-Origin', '*');
-			res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
-			res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
-			res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition, Content-Length, Content-Type');
-		},
-	});
+  // Serve static files from 'uploads' directory
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads',
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range',
+      );
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition, Content-Length, Content-Type');
+    },
+  });
 
-	// Ensure logs directory exists and serve static files from it
-	const logsPath = join(__dirname, '..', 'logs');
-	if (!existsSync(logsPath)) {
-		mkdirSync(logsPath, { recursive: true });
-	}
+  // Ensure logs directory exists and serve static files from it
+  const logsPath = join(__dirname, '..', 'logs');
+  if (!existsSync(logsPath)) {
+    mkdirSync(logsPath, { recursive: true });
+  }
 
-	app.useStaticAssets(logsPath, {
-		prefix: '/logs',
-		setHeaders: (res, path) => {
-			// Set proper content type for log files
-			if (path.endsWith('.logs')) {
-				res.setHeader('Content-Type', 'text/plain');
-			}
-		},
-	});
+  app.useStaticAssets(logsPath, {
+    prefix: '/logs',
+    setHeaders: (res, path) => {
+      // Set proper content type for log files
+      if (path.endsWith('.logs')) {
+        res.setHeader('Content-Type', 'text/plain');
+      }
+    },
+  });
 
-	/** Initialize of swagger.*/
-	await swaggerInit(app);
+  /** Initialize of swagger.*/
+  await swaggerInit(app);
 
-	/** Initialize application.*/
-	await app.listen(port);
+  /** Initialize application.*/
+  await app.listen(port);
 
-	logger.info(`🚀 🚀 🚀 Application is running on: ${await app.getUrl()} 🚀 🚀 🚀`);
+  logger.info(`🚀 🚀 🚀 Application is running on: ${await app.getUrl()} 🚀 🚀 🚀`);
 }
 
 /** NOTE: Handle unhandledRejecton in proper way. */
 process.on('unhandledRejection', (reason, p) => {
-	console.log('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
-	// application specific logging, throwing an error, or other logic here
+  console.log('Unhandled Rejection at: Promise ', p, ' reason: ', reason);
+  // application specific logging, throwing an error, or other logic here
 });
 
 bootstrap();
