@@ -13,6 +13,15 @@ export class SequelizeConfigService implements SequelizeOptionsFactory {
     const DATABASE_PASSWORD = this.configService.get<string>('DATABASE_PASSWORD');
     const DATABASE_NAME = this.configService.get<string>('DATABASE_NAME');
 
+    console.log({
+      dialect: 'postgres',
+      host: DATABASE_HOST,
+      port: DATABASE_PORT,
+      username: DATABASE_USER,
+      password: DATABASE_PASSWORD,
+      database: DATABASE_NAME,
+    });
+
     return {
       dialect: 'postgres',
       host: DATABASE_HOST,
