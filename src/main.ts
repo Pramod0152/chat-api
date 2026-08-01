@@ -35,9 +35,12 @@ async function bootstrap() {
   /** Inject logger instance */
   const logger: LoggerService = app.get<LoggerService>(LoggerService);
 
-  /** Enable Cors — allow production domains, localhost, and 127.0.0.1 (common in Edge/dev) */
   app.enableCors({
     origin: (origin, callback) => {
+      // Print exact strings wrapped in brackets to expose hidden spaces or missing values
+      console.error(`[CORS DEBUG] Incoming Origin: [${origin}]`);
+      console.error(`[CORS DEBUG] Env Variable: [${process.env.ALLOWED_ORIGINS}]`);
+
       const allowed = isOriginAllowed(origin);
       callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
     },
