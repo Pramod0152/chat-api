@@ -28,9 +28,7 @@ export class AiService {
     }
 
     // 1. Identify the other user's name dynamically for the prompt context
-    const otherUserMsg = messages.find(
-      (msg) => (msg.user?.id || msg.user_id) !== user_id
-    );
+    const otherUserMsg = messages.find((msg) => (msg.user?.id || msg.user_id) !== user_id);
     const otherUserName = otherUserMsg?.user?.username || 'The other person';
 
     // 2. Map message content dynamically to "You" and "Username"
@@ -40,7 +38,7 @@ export class AiService {
         const isRequester = senderId === user_id;
 
         // Label the requester as 'You', otherwise use their username
-        const senderName = isRequester ? 'You' : (msg.user?.username || `User ${senderId}`);
+        const senderName = isRequester ? 'You' : msg.user?.username || `User ${senderId}`;
         return `${senderName}: ${msg.content}`;
       })
       .join('\n');

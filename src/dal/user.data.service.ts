@@ -6,6 +6,8 @@ import { RegisterDto } from 'src/dto/user/register.dto';
 import { Op } from 'sequelize';
 import { PaginationDto } from 'src/dto/pagination.dto';
 import { paginate } from 'src/common/pagination/paginate';
+import { Participant } from './entities/participant.entity';
+import { Conversation } from './entities/conversation.entity';
 
 export type SaveUserDeviceDetailInput = {
   device_id?: string;
@@ -19,7 +21,7 @@ export class UserDataService {
   constructor(
     @InjectModel(User) private readonly model: typeof User,
     @InjectModel(UserDeviceDetail) private readonly userDeviceDetailModel: typeof UserDeviceDetail,
-  ) {}
+  ) { }
 
   async createUser(user: RegisterDto) {
     return this.model.create({
@@ -142,5 +144,110 @@ export class UserDataService {
         fcm_token: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] },
       },
     });
+  }
+  async findUsersNotInPrivateConversation(user_id: number, query: PaginationDto) {
+    const { limit = 10, cursor } = query;
+    const { Participant } = await import('./entities/participant.entity');
+    const { Conversation } = await import('./entities/conversation.entity');
+
+    // 1. Find all Private conversation IDs the current user is a part of
+    const userParticipants = await Participant.findAll({
+      where: {
+        user_id,
+        deleted_at: null
+      },
+      include: [{
+        model: Conversation,
+        attributes: [], // We only need the join to filter by type
+        where: { type: 'Private', deleted_at: null },
+      }],
+      attributes: ['conversation_id'],
+      raw: true, // Speeds up the query by returning raw JSON, not Sequelize instances
+    });
+
+    const conversationIds = userParticipants.map((p: any) => p.conversation_id);
+
+    // 2. Find the user_ids of the other people in those specific conversations
+    let excludeUserIds = [user_id]; // Always exclude the user making the request
+
+    if (conversationIds.length > 0) {
+      const connectedParticipants = await Participant.findAll({
+        where: {
+          conversation_id: { [Op.in]: conversationIds },
+          user_id: { [Op.ne]: user_id },
+          deleted_at: null,
+        },
+        attributes: ['user_id'],
+        raw: true,
+      });
+
+      const connectedIds = connectedParticipants.map((p: any) => p.user_id);
+      excludeUserIds = [...excludeUserIds, ...connectedIds];
+    }
+
+    // 3. Build the condition for the User query
+    const condition: any = {
+      id: { [Op.notIn]: excludeUserIds },
+    };
+
+    if (cursor != null) {
+      condition.id = { [Op.and]: [condition.id, { [Op.lt]: cursor }] };
+    }
+
+    // 4. Fetch the filtered users directly from the database (Pagination is now accurate)
+    const users = await this.model.findAll({
+      where: condition,
+      limit: limit + 1,
+      order: [
+        ['created_at', 'DESC'],
+        ['id', 'DESC'],
+      ],
+    });
+
+    return paginate(users, limit);
+  }
+
+  async findUsersNotInGroupConversation(conversation_id: number, query: PaginationDto) {
+    const { limit = 10, cursor } = query;
+    const { Participant } = await import('./entities/participant.entity');
+
+    // 1. Optimized Fetch: Only grab user_ids, return raw data
+    const existingParticipants = await Participant.findAll({
+      where: {
+        conversation_id,
+        deleted_at: null,
+      },
+      attributes: ['user_id'], // Stop fetching unneeded columns
+      raw: true, // Bypass Sequelize object instantiation (faster)
+    });
+
+    const existingUserIds = existingParticipants.map((p: any) => p.user_id);
+
+    const condition: any = {};
+
+    // 2. Safeguard against empty array SQL syntax errors
+    if (existingUserIds.length > 0) {
+      condition.id = { [Op.notIn]: existingUserIds };
+    }
+
+    // 3. Apply cursor filter cleanly
+    if (cursor != null) {
+      if (condition.id) {
+        condition.id = { [Op.and]: [condition.id, { [Op.lt]: cursor }] };
+      } else {
+        condition.id = { [Op.lt]: cursor };
+      }
+    }
+
+    const users = await this.model.findAll({
+      where: condition,
+      limit: limit + 1,
+      // 4. FIX: Align sorting with the cursor filter
+      order: [
+        ['id', 'DESC'],
+      ],
+    });
+
+    return paginate(users, limit);
   }
 }

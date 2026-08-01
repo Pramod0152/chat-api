@@ -1,10 +1,10 @@
 {
   "development": {
-    "username": "root",
-    "password": "root",
-    "database": "chat_db",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+    "username": "postgres.saahmlkkdszbxxkztwijot",
+    "password": "03mMAg7nW7lJl9FC",
+    "database": "postgres",
+    "host": "aws-1-ap-south-1.pooler.supabase.com",
+    "dialect": "postgresql"
   },
   "test": {
     "username": "root",
