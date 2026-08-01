@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { BelongsTo, Column, Model, Table } from 'sequelize-typescript';
+import { BelongsTo, Column, DataType, Model, Table } from 'sequelize-typescript';
 import { User } from './user.entity';
 
 @Table({
@@ -33,9 +33,9 @@ export class UserDeviceDetail extends Model {
   @AutoMap()
   version: string;
 
-  @Column
+  @Column({ type: DataType.BOOLEAN })
   @AutoMap()
-  status: number;
+  status: boolean;
 
   @Column
   @AutoMap()

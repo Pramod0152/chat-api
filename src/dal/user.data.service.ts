@@ -115,12 +115,12 @@ export class UserDataService {
     const deviceType = item.device_type || 'web';
 
     await this.userDeviceDetailModel.update(
-      { status: 0 },
+      { status: false },
       {
         where: {
           user_id: userId,
           device_type: deviceType,
-          status: 1,
+          status: true,
         },
       },
     );
@@ -131,7 +131,7 @@ export class UserDataService {
       device_id: item.device_id ?? null,
       version: item.version ?? null,
       fcm_token: item.fcm_token,
-      status: 1,
+      status: true,
     });
   }
 
@@ -139,7 +139,7 @@ export class UserDataService {
     return this.userDeviceDetailModel.findAll({
       where: {
         user_id: userId,
-        status: 1,
+        status: true,
         deleted_at: null,
         fcm_token: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] },
       },

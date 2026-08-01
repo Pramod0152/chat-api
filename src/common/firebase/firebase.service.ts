@@ -17,6 +17,9 @@ export class FirebaseService {
 
   async sendNotification(item: any): Promise<any> {
     try {
+      if (item.token == null || item.token == undefined || item.token == '') {
+        return;
+      }
       const response = await admin.messaging().send({
         token: item.token,
         webpush: {
