@@ -12,6 +12,7 @@ import { GenericResponseDto } from 'src/dto/generic-response.dto';
 import { ResponseHandlerService } from 'src/common/response/response-handler.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginationDto } from 'src/dto/pagination.dto';
+import { IsPublic } from 'src/common/decorators/is-public.decorator';
 
 @ApiTags('Users')
 @Controller('users')
@@ -22,7 +23,7 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly responseHandler: ResponseHandlerService,
-  ) { }
+  ) {}
 
   @Get()
   @ApiNotFoundResponse({
@@ -40,6 +41,24 @@ export class UserController {
   async findAll(@Query() query: PaginationDto) {
     const { data, nextCursor } = await this.userService.findAll(query);
     return this.responseHandler.HandleResponse(data, nextCursor);
+  }
+
+  @Get('/health')
+  @IsPublic()
+  @ApiNotFoundResponse({
+    type: GenericResponseDto,
+    description: 'Record Not Found!.',
+  })
+  @ApiBadRequestResponse({
+    type: GenericResponseDto,
+    description: 'Form Validation Error!. ',
+  })
+  @ApiUnauthorizedResponse({
+    type: GenericResponseDto,
+    description: 'Unauthorized!. ',
+  })
+  async findHealth() {
+    return this.responseHandler.HandleResponse({ status: 'OK' });
   }
 
   @Get('/me')
@@ -92,8 +111,16 @@ export class UserController {
     type: GenericResponseDto,
     description: 'Unauthorized!. ',
   })
-  async findUsersNotInGroupConversation(@Param('conversation_id', ParseIntPipe) conversation_id: number, @Query() query: PaginationDto, @Request() req: any) {
-    const { data, nextCursor } = await this.userService.findUsersNotInGroupConversation(conversation_id, query, req.user.id);
+  async findUsersNotInGroupConversation(
+    @Param('conversation_id', ParseIntPipe) conversation_id: number,
+    @Query() query: PaginationDto,
+    @Request() req: any,
+  ) {
+    const { data, nextCursor } = await this.userService.findUsersNotInGroupConversation(
+      conversation_id,
+      query,
+      req.user.id,
+    );
     return this.responseHandler.HandleResponse(data, nextCursor);
   }
 }
