@@ -8,7 +8,9 @@ import { FirebaseService } from 'src/common/firebase/firebase.service';
 import { UserDataService } from 'src/dal/user.data.service';
 import { ReadMessageDto } from 'src/dto/message/read-message.dto';
 
-@Processor('message-queue')
+@Processor('message-queue', {
+  concurrency: 20,
+})
 export class MessageProcessor extends WorkerHost {
   constructor(
     private readonly gateway: GatewayService,

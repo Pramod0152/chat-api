@@ -1,0 +1,14 @@
+config:
+  target: "http://localhost:4001"
+  processor: "./load-users-processor.js"
+  # One virtual user does the whole file. It pairs the users the earlier
+  # HTTP run already registered (lt_*@loadtest.dev). It does not register more.
+  phases:
+    - name: build
+      duration: 1
+      arrivalCount: 1
+
+scenarios:
+  - name: Pair existing users
+    flow:
+      - function: "buildCsv"

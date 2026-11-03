@@ -1,0 +1,62 @@
+config:
+  target: "http://localhost:4001"
+  processor: "./load-test-processor.js"
+  variables:
+    messagesPerUser: 4
+  payload:
+    # Header row, then one private conversation per line:
+    # token,peerToken,conversationId
+    # token sends. peerToken is the other participant. The processor connects both,
+    # because the server emits on-message-received only to the other people in the room.
+    # Default run uses all 350 rows, one pair per line.
+    path: "load-users.csv"
+    fields:
+      - "token"
+      - "peerToken"
+      - "conversationId"
+    order: sequence
+    skipHeader: true
+    skipEmptyLines: true
+
+  # 70s * (3+7)/2 = 350 users, one per CSV row.
+  # 350 * 4 messages = 1400. At the top, 7 users/s * 4 = 28 messages/s.
+  phases:
+    - name: ramp
+      duration: 70
+      arrivalRate: 3
+      rampTo: 7
+
+  environments:
+    # npx artillery run load-test.yml --environment smoke
+    smoke:
+      variables:
+        messagesPerUser: 1
+      phases:
+        - name: smoke
+          duration: 1
+          arrivalRate: 1
+          rampTo: 1
+        - name: idle
+          pause: 1
+          duration: 1
+          arrivalRate: 0
+          rampTo: 0
+
+    # Past the HTTP plateau, to look for the socket + queue + write limit.
+    # 20s * 5/s + 60s * (7+20)/2 = 910 users. Rows are reused once the CSV ends.
+    # npx artillery run load-test.yml --environment push
+    push:
+      phases:
+        - name: warm-up
+          duration: 20
+          arrivalRate: 5
+          rampTo: 5
+        - name: climb
+          duration: 60
+          arrivalRate: 7
+          rampTo: 20
+
+scenarios:
+  - name: Real message
+    flow:
+      - function: "hitMessages"
